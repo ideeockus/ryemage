@@ -6,3 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+image = "0.24"
+kmeans_colors = "0.6"
+palette = "0.7"
+kdtree = "0.7"
+color_quant = "1.1"
