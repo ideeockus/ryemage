@@ -16,10 +16,10 @@ use crate::image_processing::utils::load_image_from_unknown_reader;
 
 const RUN_AMOUNT: u16 = 5;
 const MAX_ITER: usize = 20;
-const CONVERGE: f32 = 5.0;
+// const CONVERGE: f32 = 5.0;
 
 
-fn find_kmeans_clusters<C: Calculate + Clone>(img_buf: &[C], quantity: usize) -> Kmeans<C> {
+fn find_kmeans_clusters<C: Calculate + Clone>(img_buf: &[C], quantity: usize, converge: f32) -> Kmeans<C> {
     let mut result = Kmeans::new();
 
     let seed = 351;
@@ -27,7 +27,7 @@ fn find_kmeans_clusters<C: Calculate + Clone>(img_buf: &[C], quantity: usize) ->
         let run_result = get_kmeans(
             quantity,
             MAX_ITER,
-            CONVERGE,
+            converge,
             true,
             img_buf,
             seed + i as u64,
@@ -61,7 +61,7 @@ pub fn get_image_lab_palette(img: RgbImage, quantity: usize) -> Vec<Lab> {
     //         result = run_result;
     //     }
     // }
-    let result = find_kmeans_clusters(&lab, quantity);
+    let result = find_kmeans_clusters(&lab, quantity, 5.0);
 
     result.centroids
     // result.centroids.iter().map(
@@ -76,7 +76,7 @@ pub fn get_image_rgb_palette(img: RgbImage, quantity: usize) -> Vec<Srgb> {
         .map(|x| x.into_linear())
         .collect();
 
-    let result = find_kmeans_clusters(&rgb, quantity);
+    let result = find_kmeans_clusters(&rgb, quantity, 0.025);
 
     // let mut result = Kmeans::new();
     // for i in 0..RUN_AMOUNT {
