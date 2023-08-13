@@ -1,5 +1,7 @@
 /target
 .idea
-last_gen
+last_gen*
+gen_test_*
 res/
 venv/
+produced/
