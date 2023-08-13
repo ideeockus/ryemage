@@ -1,0 +1,5 @@
+/target
+.idea
+last_gen
+res/
+venv/
