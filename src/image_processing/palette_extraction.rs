@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io;
+use std::{io, result};
 use std::io::{BufReader, Cursor, Read};
 use std::path::Path;
 
@@ -7,7 +7,7 @@ use color_quant::NeuQuant;
 use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgb, RgbImage};
 use image::imageops::{ColorMap, dither, index_colors};
 use image::io::Reader as ImageReader;
-use kmeans_colors::{Calculate, get_kmeans, Kmeans, MapColor};
+use kmeans_colors::{Calculate, get_kmeans, Kmeans, MapColor, Sort};
 use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb};
 use palette::cast::{from_component_slice, into_component_slice};
 use palette::luma::channels::La;
@@ -49,7 +49,11 @@ pub fn get_image_lab_palette(img: DynamicImage, quantity: usize) -> Vec<Lab> {
         .collect();
     let result = find_kmeans_clusters(&lab, quantity, 5.0);
 
-    result.centroids
+    Lab::sort_indexed_colors(&result.centroids, &result.indices)
+        .iter()
+        .map(|cd| cd.centroid)
+        .collect()
+    // result.centroids
 }
 
 pub fn get_image_rgb_palette(img: DynamicImage, quantity: usize) -> Vec<LinSrgb> {
@@ -64,5 +68,16 @@ pub fn get_image_rgb_palette(img: DynamicImage, quantity: usize) -> Vec<LinSrgb>
     // result.centroids.iter().map(
     //     |&x| Srgb::from_linear(x.into_color())
     // ).collect()
-    result.centroids
+
+    let srgb: Vec<Srgb> = result.centroids.iter().map(|&cd| Srgb::from_linear(cd)).collect();
+    Srgb::sort_indexed_colors(&srgb, &result.indices)
+        .iter()
+        .map(|cd| cd.centroid.into_linear())
+        .collect()
+
+    // LinSrgb::sort_indexed_colors(&result.centroids, &result.indices)
+    //     .iter()
+    //     .map(|cd| cd.centroid)
+    //     .collect()
+    // result.centroids
 }

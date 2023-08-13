@@ -4,6 +4,7 @@ use std::marker::PhantomData;
 use std::ops::Index;
 
 use image::imageops::ColorMap;
+use kdtree::KdTree;
 use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb};
 use palette::cast::{ArraysFrom, from_array, from_component_slice};
 use palette::color_difference::{EuclideanDistance, HyAb};
@@ -11,6 +12,7 @@ use palette::rgb::Rgb;
 
 pub struct PaletteColorMap<T> {
     colors: Vec<T>,
+    // color_set: KdTree<A, T>
 }
 
 impl<T> PaletteColorMap<T> {
@@ -83,6 +85,17 @@ impl ColorMap for PaletteColorMap<Lab> {
         let srgb: Srgb<u8> = Srgb::from_format(replacement_color.into_color());
         color.0 = [srgb.red, srgb.green, srgb.blue]
     }
+
+    fn lookup(&self, index: usize) -> Option<Self::Color> {
+        self.colors.get(index).map(|&color| {
+            let srgb: Srgb<u8> = Srgb::from_format(color.into_color());
+            image::Rgb([srgb.red, srgb.green, srgb.blue])
+        })
+    }
+
+    fn has_lookup(&self) -> bool {
+        true
+    }
 }
 
 
@@ -109,10 +122,10 @@ impl ColorMap for PaletteColorMap<LinSrgb> {
         let mut similarity: f32 = 1000.0;  // todo fix
 
         let calc_distance = |color_1: LinSrgb, color_2: LinSrgb| {
-            f32::sqrt(
-                (color_1.red - color_2.red).powi(2) +
-                    (color_1.green - color_2.green).powi(2) +
-                    (color_1.blue - color_2.blue).powi(2)
+            f32::sqrt(  // TODO replace with squared euclidean ?
+                        (color_1.red - color_2.red).powi(2) +
+                            (color_1.green - color_2.green).powi(2) +
+                            (color_1.blue - color_2.blue).powi(2)
             )
         };
 
@@ -133,5 +146,27 @@ impl ColorMap for PaletteColorMap<LinSrgb> {
         let srgb: Srgb<u8> = Srgb::from_linear(lin_rgb);
 
         color.0 = [srgb.red, srgb.green, srgb.blue]
+    }
+
+    fn lookup(&self, index: usize) -> Option<Self::Color> {
+        self.colors.get(index).map(|&color| {
+            let srgb: Srgb<u8> = Srgb::from_linear(color);
+            image::Rgb([srgb.red, srgb.green, srgb.blue])
+        })
+    }
+
+    fn has_lookup(&self) -> bool {
+        true
+    }
+}
+
+
+pub trait LimitedColorSet {
+    fn color_set_size(&self) -> usize;
+}
+
+impl<T> LimitedColorSet for PaletteColorMap<T> {
+    fn color_set_size(&self) -> usize {
+        self.colors.len()
     }
 }
