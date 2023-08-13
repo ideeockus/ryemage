@@ -12,11 +12,11 @@ use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb};
 use palette::cast::{from_component_slice, into_component_slice};
 use palette::luma::channels::La;
 
-use crate::image_processing::utils::load_image_from_unknown_reader;
+use crate::image_processing::utils::{downscale_to_size, load_image_from_unknown_reader};
 
-const RUN_AMOUNT: u16 = 5;
-const MAX_ITER: usize = 20;
-// const CONVERGE: f32 = 5.0;
+const RUN_AMOUNT: u16 = 3;
+const MAX_ITER: usize = 10;
+const IMAGE_SIZE: (u32, u32) = (512, 512);
 
 
 fn find_kmeans_clusters<C: Calculate + Clone>(img_buf: &[C], quantity: usize, converge: f32) -> Kmeans<C> {
@@ -40,86 +40,29 @@ fn find_kmeans_clusters<C: Calculate + Clone>(img_buf: &[C], quantity: usize, co
     result
 }
 
-pub fn get_image_lab_palette(img: RgbImage, quantity: usize) -> Vec<Lab> {
+pub fn get_image_lab_palette(img: DynamicImage, quantity: usize) -> Vec<Lab> {
+    let img = downscale_to_size(img, IMAGE_SIZE).to_rgb8();
+
     let lab: Vec<Lab> = from_component_slice::<Srgb<u8>>(&img)
         .iter()
         .map(|x| x.into_linear().into_color())
         .collect();
-
-
-    // let mut result = Kmeans::new();
-    // for i in 0..RUN_AMOUNT {
-    //     let run_result = get_kmeans(
-    //         quantity,
-    //         MAX_ITER,
-    //         CONVERGE,
-    //         true,
-    //         &lab,
-    //         seed + i as u64,
-    //     );
-    //     if run_result.score < result.score {
-    //         result = run_result;
-    //     }
-    // }
     let result = find_kmeans_clusters(&lab, quantity, 5.0);
 
     result.centroids
-    // result.centroids.iter().map(
-    //     |&x| Srgb::from_linear(x.into_color())
-    // ).collect()
-    // Srgb::map_indices_to_centroids(&srgb_centroids, &result.indices)
 }
 
-pub fn get_image_rgb_palette(img: RgbImage, quantity: usize) -> Vec<Srgb> {
+pub fn get_image_rgb_palette(img: DynamicImage, quantity: usize) -> Vec<LinSrgb> {
+    let img = downscale_to_size(img, IMAGE_SIZE).to_rgb8();
+
     let rgb: Vec<LinSrgb> = from_component_slice::<Srgb<u8>>(&img)
         .iter()
         .map(|x| x.into_linear())
         .collect();
-
     let result = find_kmeans_clusters(&rgb, quantity, 0.025);
 
-    // let mut result = Kmeans::new();
-    // for i in 0..RUN_AMOUNT {
-    //     let run_result = get_kmeans(
-    //         quantity,
-    //         MAX_ITER,
-    //         CONVERGE,
-    //         true,
-    //         &rgb,
-    //         seed + i as u64,
-    //     );
-    //     if run_result.score < result.score {
-    //         result = run_result;
-    //     }
-    // }
-
-    result.centroids.iter().map(
-        |&x| Srgb::from_linear(x.into_color())
-    ).collect()
-
-    // Srgb::map_indices_to_centroids(srgb_centroids.as_slice(), &result.indices)
+    // result.centroids.iter().map(
+    //     |&x| Srgb::from_linear(x.into_color())
+    // ).collect()
+    result.centroids
 }
-
-// pub fn test_color_palette() -> Vec<Srgb> {
-//     let pic1 = Path::new("res/pic1.png");
-//     let mut img_file = File::open(pic1).unwrap();
-//     let img = load_image_from_unknown_reader(img_file)
-//         .expect("Cannot load image")
-//         .to_rgb8();
-//
-//     // let extracted_palette = get_image_lab_palette(img, 16);
-//     let extracted_palette = get_image_rgb_palette(img, 16);
-//
-//     extracted_palette
-// }
-//
-// pub fn test_neu_quant() -> NeuQuant {
-//     let pic1 = Path::new("res/pic1.png");
-//     let mut img_file = File::open(pic1).unwrap();
-//     let img = load_image_from_unknown_reader(img_file)
-//         .expect("Cannot load image")
-//         .to_rgba8();
-//     println!("Start NeuQuant train");
-//
-//     NeuQuant::new(1, 16, img.as_raw())
-// }
