@@ -2,10 +2,10 @@ use std::cmp::Ordering;
 use std::marker::PhantomData;
 use std::ops::Index;
 use image::imageops::ColorMap;
-use image::Rgb;
 use palette::cast::{ArraysFrom, from_array, from_component_slice};
 use palette::{IntoColor, Srgb, Lab, FromColor};
-use palette::color_difference::HyAb;
+use palette::color_difference::{EuclideanDistance, HyAb};
+use palette::rgb::Rgb;
 
 pub struct PaletteColorMap<T> {
     colors: Vec<T>,
@@ -22,7 +22,7 @@ impl PaletteColorMap<Lab> {
 }
 
 impl ColorMap for PaletteColorMap<Lab> {
-    type Color = Rgb<u8>;
+    type Color = image::Rgb<u8>;
 
     // TODO use KD-Tree instead of linear search
 
@@ -69,3 +69,57 @@ impl ColorMap for PaletteColorMap<Lab> {
         color.0 = [srgb.red, srgb.green, srgb.blue]
     }
 }
+
+
+// impl PaletteColorMap<Rgb<u8>> {
+//     pub fn new(mut colors: Vec<Rgb<u8>>) -> Self {
+//         // colors.sort();
+//
+//         Self {
+//             colors
+//         }
+//     }
+// }
+//
+// impl ColorMap for PaletteColorMap<Rgb> {
+//     type Color = image::Rgb<u8>;
+//
+//     // TODO use KD-Tree instead of linear search
+//
+//     fn index_of(&self, color: &Self::Color) -> usize {
+//         // let srgb: Rgb<_, _> = from_array(color.0);
+//         let rgb: Rgb<u8> = from_array(color.0);
+//         let rgb: Rgb<f32> = Rgb::from_color(rgb).into_format();
+//         // lab.hybrid_distance()
+//
+//         let mut index = 0;
+//         let mut similarity: f32 = 1000.0;  // todo fix
+//
+//         // let calc_distance = |color_1: Rgb, color_2: Rgb| {
+//         //     f32::sqrt(
+//         //         (color_1.red - color_2.red).powi(2) +
+//         //             (color_1.green - color_2.green).powi(2) +
+//         //             (color_1.blue - color_2.blue).powi(2)
+//         //     )
+//         // };
+//
+//
+//         for (i, &c) in self.colors.iter().enumerate() {
+//             let cur_similarity = rgb.distance(c);
+//             if cur_similarity < similarity {
+//                 similarity = cur_similarity;
+//                 index = i;
+//             }
+//         }
+//
+//         index
+//     }
+//
+//     fn map_color(&self, color: &mut Self::Color) {
+//         let index = self.index_of(color);
+//         let rgb = self.colors[index];
+//         // let rgb: Rgb<_, u8> = Rgb::from_linear(replacement_color.into_color());
+//
+//         color.0 = [rgb.red, rgb.green, rgb.blue]
+//     }
+// }

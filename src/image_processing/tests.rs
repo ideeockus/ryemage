@@ -20,10 +20,10 @@ fn test_dither_with_neu_quant() {
     let donor_img_file = load_image_from_unknown_reader(donor_img_file)
         .expect("Cannot load image")
         .to_rgb8();
-    let test_palette = PaletteColorMap::new(get_image_lab_palette(donor_img_file, 8));
+    let test_palette = PaletteColorMap::new(get_image_lab_palette(donor_img_file, 20));
 
 
-    let img_file = File::open(pic3).unwrap();
+    let img_file = File::open(pic4).unwrap();
     let processed_image = dither_with_palette(img_file, test_palette);
     let mut save_file = File::create("gen_test_dither").unwrap();
     save_file.write_all(&processed_image).unwrap();
@@ -45,9 +45,9 @@ fn test_apply_palette_to_image() {
     let donor_image = load_image_from_unknown_reader(donor_img_file)
         .unwrap()
         .to_rgb8();
-    let test_palette = PaletteColorMap::new(get_image_lab_palette(donor_image, 8));
+    let test_palette = PaletteColorMap::new(get_image_lab_palette(donor_image, 20));
 
-    let img_file = File::open(pic3).unwrap();
+    let img_file = File::open(pic4).unwrap();
     let processed_image = apply_palette_to_image(img_file, test_palette);
     let mut save_file = File::create("gen_test_palette").unwrap();
     save_file.write_all(&processed_image).unwrap();
