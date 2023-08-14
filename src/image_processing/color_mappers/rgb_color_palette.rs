@@ -11,7 +11,6 @@ use palette::rgb::Rgb;
 use rstar::{AABB, Envelope, Point, PointDistance, RTree, RTreeObject};
 
 use crate::image_processing::color_mappers::IndexedColor;
-use crate::image_processing::ryemage_palette::LimitedColorSet;
 
 impl RTreeObject for IndexedColor<LinSrgb> {
     type Envelope = AABB<[f32; 3]>;

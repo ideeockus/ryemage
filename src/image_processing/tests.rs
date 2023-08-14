@@ -7,8 +7,7 @@ use image::imageops::ColorMap;
 use crate::image_processing::color_mappers::{LabPaletteMapper, RgbPaletteMapper};
 
 use crate::image_processing::PaletteOperations;
-use crate::image_processing::palette_extraction::{get_image_lab_palette, get_image_rgb_palette};
-use crate::image_processing::ryemage_palette::PaletteColorMap;
+use crate::image_processing::palette_extraction::{create_lab_palette_mapper, create_rgb_palette_mapper, create_swap_palette_mapper};
 use crate::image_processing::utils::{load_image_from_file, load_image_from_unknown_reader, save_image};
 
 
@@ -23,70 +22,9 @@ const PIC_8: &str = "res/pic8.png";
 const PIC_9: &str = "res/pic9.jpg";
 const PIC_10: &str = "res/pic10.jpg";
 
-const DONOR_PIC: &str = PIC_1;
-const RECEPTOR_PIC: &str = PIC_4;
-const PALETTE_QUANTITY: usize = 64;
-
-//
-// fn test_dither_with_palette(
-//     mut img_to_process: RgbImage,
-//     palette: impl ColorMap<Color=Rgb<u8>>,
-// ) {
-//     img_to_process.dither_with_palette(palette);
-// }
-//
-// fn test_apply_palette_to_image(
-//     mut img_to_process: RgbImage,
-//     palette: impl ColorMap<Color=Rgb<u8>>,
-// ) {
-//     img_to_process.apply_palette_to_image(palette);
-// }
-//
-// fn test_swap_palette(
-//     mut img_to_process: RgbImage,
-//     palette: impl ColorMap<Color=Rgb<u8>>,
-// ) {
-//     img_to_process.swap_palette(palette);
-// }
-//
-//
-// #[test]
-// fn run_picture_tests() {
-//     let donor_image = load_image_from_file(DONOR_PIC)
-//         .expect("Cannot load image");
-//     println!("Donor test image loaded");
-//
-//     let test_palette = LabColorPalette::new(
-//         get_image_lab_palette(donor_image, 8, true)
-//     );
-//     println!("Test palette extracted");
-//
-//     let mut img_to_process = load_image_from_file(RECEPTOR_PIC)
-//         .expect("Cannot load image")
-//         .to_rgb8();
-//     println!("Receptor test image loaded");
-//
-//     println!("Running tests");
-//     for (test_func, test_name) in [
-//         (test_dither_with_palette, "gen_test_dither")
-//     ] {
-//         let start = SystemTime::now();
-//
-//         test_func(
-//             img_to_process.clone(),
-//             test_palette.clone(),
-//         );
-//
-//         img_to_process.save_with_format(
-//             test_name,
-//             ImageFormat::Png,
-//         ).expect("Failed to save file");
-//
-//         let end = SystemTime::now();
-//         let duration = end.duration_since(start).unwrap();
-//         println!("Test {test_name} took {} seconds", duration.as_secs());
-//     }
-// }
+const DONOR_PIC: &str = PIC_10;
+const RECEPTOR_PIC: &str = PIC_1;
+const PALETTE_QUANTITY: usize = 32;
 
 
 #[test]
@@ -94,20 +32,20 @@ fn test_dither_with_palette() {
     let start = SystemTime::now();
     let donor_image = load_image_from_file(DONOR_PIC)
         .expect("Cannot load image");
-    let test_palette = RgbPaletteMapper::new(
-        get_image_rgb_palette(donor_image, PALETTE_QUANTITY, true)
+    let mut img_to_process = load_image_from_file(RECEPTOR_PIC)
+        .expect("Cannot load image");
+
+    let color_mapper = create_lab_palette_mapper(
+        donor_image,
+        PALETTE_QUANTITY,
     );
 
-    let mut img_to_process = load_image_from_file(RECEPTOR_PIC)
-        .expect("Cannot load image")
-        .to_rgb8();
-
-    img_to_process.dither_with_palette(test_palette);
+    let mut img_to_process = img_to_process.to_rgb8();
+    img_to_process.dither_with_palette(color_mapper);
     img_to_process.save_with_format(
         "gen_test_dither",
         ImageFormat::Png,
     ).expect("Failed to save file");
-    // save_image("gen_test_dither", processed_image).expect("Failed to save file");
 
     let end = SystemTime::now();
     let duration = end.duration_since(start).unwrap();
@@ -120,20 +58,21 @@ fn test_apply_palette_to_image() {
 
     let donor_image = load_image_from_file(DONOR_PIC)
         .expect("Cannot load image");
-    let test_palette = RgbPaletteMapper::new(
-        get_image_rgb_palette(donor_image, PALETTE_QUANTITY, true)
+    let img_to_process = load_image_from_file(RECEPTOR_PIC)
+        .expect("Cannot load image");
+
+    let color_mapper = create_swap_palette_mapper(
+        &donor_image,
+        &img_to_process,
+        PALETTE_QUANTITY,
     );
 
-    let mut img_to_process = load_image_from_file(RECEPTOR_PIC)
-        .expect("Cannot load image")
-        .to_rgb8();
-
-    img_to_process.apply_palette_to_image(test_palette);
+    let mut img_to_process = img_to_process.to_rgb8();
+    img_to_process.apply_palette_to_image(color_mapper);
     img_to_process.save_with_format(
         "gen_test_palette",
         ImageFormat::Png,
     ).expect("Failed to save file");
-    // save_image("gen_test_palette", processed_image).expect("Failed to save file");
 
     let end = SystemTime::now();
     let duration = end.duration_since(start).unwrap();
@@ -146,20 +85,21 @@ fn test_swap_palette() {
 
     let donor_image = load_image_from_file(DONOR_PIC)
         .expect("Cannot load image");
-    let test_palette = PaletteColorMap::new(
-        get_image_rgb_palette(donor_image, PALETTE_QUANTITY, true)
+    let img_to_process = load_image_from_file(RECEPTOR_PIC)
+        .expect("Cannot load image");
+
+    let color_mapper = create_swap_palette_mapper(
+        &donor_image,
+        &img_to_process,
+        PALETTE_QUANTITY,
     );
 
-    let mut img_to_process = load_image_from_file(RECEPTOR_PIC)
-        .expect("Cannot load image")
-        .to_rgb8();
-
-    img_to_process.swap_palette(test_palette);
+    let mut img_to_process = img_to_process.to_rgb8();
+    img_to_process.dither_with_palette(color_mapper);
     img_to_process.save_with_format(
         "gen_test_swap",
         ImageFormat::Png,
     ).expect("Failed to save file");
-    // save_image("gen_test_palette", processed_image).expect("Failed to save file");
 
     let end = SystemTime::now();
     let duration = end.duration_since(start).unwrap();

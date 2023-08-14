@@ -11,6 +11,7 @@ use kmeans_colors::{Calculate, get_kmeans, Kmeans, MapColor, Sort};
 use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb};
 use palette::cast::{from_component_slice, into_component_slice};
 use palette::luma::channels::La;
+use crate::image_processing::color_mappers::{LabPaletteMapper, RgbPaletteMapper, SwapPaletteMapper};
 
 use crate::image_processing::utils::{downscale_to_size, load_image_from_unknown_reader};
 
@@ -40,10 +41,9 @@ fn find_kmeans_clusters<C: Calculate + Clone>(img_buf: &[C], quantity: usize, co
     result
 }
 
-pub fn get_image_lab_palette(img: DynamicImage, quantity: usize, need_sort: bool) -> Vec<Lab> {
-    let img = downscale_to_size(img, IMAGE_SIZE, FilterType::Nearest).to_rgb8();
-
-    let lab: Vec<Lab> = from_component_slice::<Srgb<u8>>(&img)
+/// Extract image palette in Lab values
+fn get_image_lab_palette(img: &RgbImage, quantity: usize, need_sort: bool) -> Vec<Lab> {
+    let lab: Vec<Lab> = from_component_slice::<Srgb<u8>>(img.as_raw())
         .iter()
         .map(|x| x.into_linear().into_color())
         .collect();
@@ -59,10 +59,9 @@ pub fn get_image_lab_palette(img: DynamicImage, quantity: usize, need_sort: bool
     }
 }
 
-pub fn get_image_rgb_palette(img: DynamicImage, quantity: usize, need_sort: bool) -> Vec<LinSrgb> {
-    let img = downscale_to_size(img, IMAGE_SIZE, FilterType::Nearest).to_rgb8();
-
-    let rgb: Vec<LinSrgb> = from_component_slice::<Srgb<u8>>(&img)
+/// Extract image palette in linear RGB values
+fn get_image_lin_rgb_palette(img: &RgbImage, quantity: usize, need_sort: bool) -> Vec<LinSrgb> {
+    let rgb: Vec<LinSrgb> = from_component_slice::<Srgb<u8>>(img.as_raw())
         .iter()
         .map(|x| x.into_linear())
         .collect();
@@ -77,6 +76,44 @@ pub fn get_image_rgb_palette(img: DynamicImage, quantity: usize, need_sort: bool
     } else {
         result.centroids
     }
+}
+
+
+pub fn create_lab_palette_mapper(img: DynamicImage, quantity: usize) -> LabPaletteMapper {
+    let img = downscale_to_size(&img, IMAGE_SIZE, FilterType::Nearest)
+        .unwrap_or(img)
+        .to_rgb8();
+
+    let unsorted_palette = get_image_lab_palette(&img, quantity, false);
+
+    LabPaletteMapper::new(unsorted_palette)
+}
+
+pub fn create_rgb_palette_mapper(img: DynamicImage, quantity: usize) -> RgbPaletteMapper {
+    let img = downscale_to_size(&img, IMAGE_SIZE, FilterType::Nearest)
+        .unwrap_or(img)
+        .to_rgb8();
+
+    let unsorted_palette = get_image_lin_rgb_palette(&img, quantity, false);
+
+    RgbPaletteMapper::new(unsorted_palette)
+}
+
+pub fn create_swap_palette_mapper(img_to_process: &DynamicImage, palette_img: &DynamicImage, quantity: usize) -> SwapPaletteMapper {
+    let palette_img = match downscale_to_size(palette_img, IMAGE_SIZE, FilterType::Nearest) {
+        None => palette_img.to_rgb8(),
+        Some(scaled) => scaled.to_rgb8(),
+    };
+
+    let img_to_process = match downscale_to_size(img_to_process, IMAGE_SIZE, FilterType::Nearest) {
+        None => img_to_process.to_rgb8(),
+        Some(scaled) => scaled.to_rgb8(),
+    };
+
+    let sorted_palette_1 = get_image_lin_rgb_palette(&palette_img, quantity, true);
+    let sorted_palette_2 = get_image_lin_rgb_palette(&img_to_process, quantity, true);
+
+    SwapPaletteMapper::new(sorted_palette_1, sorted_palette_2).unwrap()
 }
 
 

@@ -9,7 +9,6 @@ edition = "2021"
 image = "0.24"
 kmeans_colors = "0.6"
 palette = "0.7"
-kdtree = "0.7"
 color_quant = "1.1"
 rstar = "0.11"
 

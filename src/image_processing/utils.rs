@@ -15,7 +15,7 @@ use palette::cast::{from_component_slice, into_component_slice};
 const IMAGE_SIZE_LIMIT: (u32, u32) = (1280, 1280);
 
 
-pub fn downscale_to_size(img: DynamicImage, target_size: (u32, u32), filter: FilterType) -> DynamicImage {
+pub fn downscale_to_size(img: &DynamicImage, target_size: (u32, u32), filter: FilterType) -> Option<DynamicImage> {
     let width = img.width() as f32;
     let height = img.height() as f32;
 
@@ -26,14 +26,14 @@ pub fn downscale_to_size(img: DynamicImage, target_size: (u32, u32), filter: Fil
     );
 
     if resize_factor > 1.0 {
-        return img.resize(
+        return Some(img.resize(
             (width / resize_factor) as u32,
             (height / resize_factor) as u32,
             filter,
-        );
+        ));
     }
 
-    img
+    None
 }
 
 pub fn load_image_from_file<P>(path: P) -> io::Result<DynamicImage>
@@ -72,7 +72,8 @@ pub fn load_image_from_unknown_reader(mut reader: impl BufRead, size: Option<u64
         .with_guessed_format()?
         .decode().unwrap();
 
-    let img = downscale_to_size(img, IMAGE_SIZE_LIMIT, FilterType::Lanczos3);
+    let img = downscale_to_size(&img, IMAGE_SIZE_LIMIT, FilterType::Lanczos3)
+        .unwrap_or(img);
 
     Ok(img)
 }

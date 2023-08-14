@@ -16,8 +16,6 @@ use palette::cast::{from_component_slice, into_component_slice};
 use color_mappers::LabPaletteMapper;
 use color_mappers::RgbPaletteMapper;
 
-use crate::image_processing::palette_extraction::get_image_rgb_palette;
-use crate::image_processing::ryemage_palette::{LimitedColorSet, PaletteColorMap};
 use crate::image_processing::utils::load_image_from_unknown_reader;
 
 mod utils;
@@ -31,9 +29,9 @@ mod tests;
 trait PaletteOperations {
     fn apply_palette_to_image(&mut self, palette: impl ColorMap<Color=Rgb<u8>>) -> &mut Self;
     fn dither_with_palette(&mut self, palette: impl ColorMap<Color=Rgb<u8>>) -> &mut Self;
-    fn swap_palette<Pal>(&mut self, palette: Pal) -> &mut Self
-        where
-            Pal: ColorMap<Color=Rgb<u8>> + LimitedColorSet;
+    // fn swap_palette<Pal>(&mut self, palette: Pal) -> &mut Self
+    //     where
+    //         Pal: ColorMap<Color=Rgb<u8>> + LimitedColorSet;
     // fn swap_palette_differentiate(&mut self, palette: impl ColorMap<Color=Rgb<u8>>) -> &mut Self;
 }
 
@@ -61,27 +59,27 @@ impl PaletteOperations for RgbImage {
         self
     }
 
-    fn swap_palette<Pal>(&mut self, palette: Pal) -> &mut Self
-        where
-            Pal: ColorMap<Color=Rgb<u8>> + LimitedColorSet
-    {
-        println!("loaded image: {:?}", self.dimensions());
-        println!("Detecting image own palette");
-        let self_palette = PaletteColorMap::new(get_image_rgb_palette(
-            DynamicImage::ImageRgb8(self.clone()),
-            palette.color_set_size(),
-            true,
-        ));
-
-        println!("Start image processing");
-        for pixel in self.pixels_mut() {
-            let color_index = self_palette.index_of(pixel);
-            let complimentary_color = palette.lookup(color_index).unwrap();
-            pixel.0 = complimentary_color.0;
-        }
-
-        self
-    }
+    // fn swap_palette<Pal>(&mut self, palette: Pal) -> &mut Self
+    //     where
+    //         Pal: ColorMap<Color=Rgb<u8>> + LimitedColorSet
+    // {
+    //     println!("loaded image: {:?}", self.dimensions());
+    //     println!("Detecting image own palette");
+    //     let self_palette = PaletteColorMap::new(get_image_rgb_palette(
+    //         DynamicImage::ImageRgb8(self.clone()),
+    //         palette.color_set_size(),
+    //         true,
+    //     ));
+    //
+    //     println!("Start image processing");
+    //     for pixel in self.pixels_mut() {
+    //         let color_index = self_palette.index_of(pixel);
+    //         let complimentary_color = palette.lookup(color_index).unwrap();
+    //         pixel.0 = complimentary_color.0;
+    //     }
+    //
+    //     self
+    // }
 
     // fn swap_palette_differentiate(&mut self, palette: impl ColorMap<Color=Rgb<u8>>) -> &mut Self {
     //     println!("loaded image: {:?}", self.dimensions());
