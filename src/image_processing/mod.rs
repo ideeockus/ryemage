@@ -12,14 +12,18 @@ use image::io::Reader as ImageReader;
 use kmeans_colors::{get_kmeans, Kmeans, MapColor};
 use palette::{FromColor, IntoColor, Lab, Srgb};
 use palette::cast::{from_component_slice, into_component_slice};
-use crate::image_processing::palette_extraction::get_image_rgb_palette;
 
-use crate::image_processing::ryemage_palette::{PaletteColorMap, LimitedColorSet};
+use color_mappers::LabPaletteMapper;
+use color_mappers::RgbPaletteMapper;
+
+use crate::image_processing::palette_extraction::get_image_rgb_palette;
+use crate::image_processing::ryemage_palette::{LimitedColorSet, PaletteColorMap};
 use crate::image_processing::utils::load_image_from_unknown_reader;
 
 mod utils;
 mod palette_extraction;
 mod ryemage_palette;
+mod color_mappers;
 
 #[cfg(test)]
 mod tests;
@@ -66,6 +70,7 @@ impl PaletteOperations for RgbImage {
         let self_palette = PaletteColorMap::new(get_image_rgb_palette(
             DynamicImage::ImageRgb8(self.clone()),
             palette.color_set_size(),
+            true,
         ));
 
         println!("Start image processing");

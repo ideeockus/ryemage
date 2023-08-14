@@ -12,7 +12,6 @@ use palette::rgb::Rgb;
 
 pub struct PaletteColorMap<T> {
     colors: Vec<T>,
-    // color_set: KdTree<A, T>
 }
 
 impl<T> PaletteColorMap<T> {
@@ -27,16 +26,6 @@ impl<T> PaletteColorMap<T> {
     }
 }
 
-// impl PaletteColorMap<Lab> {
-//     pub fn new(mut colors: Vec<Lab>) -> Self {
-//         colors.sort_by(|left, right| left.l.partial_cmp(&right.l).unwrap_or(Ordering::Equal));
-//
-//         Self {
-//             colors
-//         }
-//     }
-// }
-
 impl ColorMap for PaletteColorMap<Lab> {
     type Color = image::Rgb<u8>;
 
@@ -45,7 +34,6 @@ impl ColorMap for PaletteColorMap<Lab> {
     fn index_of(&self, color: &Self::Color) -> usize {
         let srgb: Srgb<u8> = from_array(color.0);
         let lab = Lab::from_color(srgb.into_linear());
-        // lab.hybrid_distance()
 
         let mut index = 0;
         let mut similarity: f32 = 1000.0;  // todo fix
@@ -58,10 +46,6 @@ impl ColorMap for PaletteColorMap<Lab> {
             )
         };
 
-        // let calc_distance = |color_1: Lab, color_2: Lab| {
-        //     color_1.hybrid_distance(color_2)
-        // };
-
         for (i, &c) in self.colors.iter().enumerate() {
             let cur_similarity = calc_distance(c, lab);
             if cur_similarity < similarity {
@@ -71,6 +55,17 @@ impl ColorMap for PaletteColorMap<Lab> {
         }
 
         index
+    }
+
+    fn lookup(&self, index: usize) -> Option<Self::Color> {
+        self.colors.get(index).map(|&color| {
+            let srgb: Srgb<u8> = Srgb::from_format(color.into_color());
+            image::Rgb([srgb.red, srgb.green, srgb.blue])
+        })
+    }
+
+    fn has_lookup(&self) -> bool {
+        true
     }
 
     fn map_color(&self, color: &mut Self::Color) {
@@ -84,17 +79,6 @@ impl ColorMap for PaletteColorMap<Lab> {
         // let srgb = Srgb::from_linear(replacement_color.into_color()); // TODO check why linear here
         let srgb: Srgb<u8> = Srgb::from_format(replacement_color.into_color());
         color.0 = [srgb.red, srgb.green, srgb.blue]
-    }
-
-    fn lookup(&self, index: usize) -> Option<Self::Color> {
-        self.colors.get(index).map(|&color| {
-            let srgb: Srgb<u8> = Srgb::from_format(color.into_color());
-            image::Rgb([srgb.red, srgb.green, srgb.blue])
-        })
-    }
-
-    fn has_lookup(&self) -> bool {
-        true
     }
 }
 
@@ -140,14 +124,6 @@ impl ColorMap for PaletteColorMap<LinSrgb> {
         index
     }
 
-    fn map_color(&self, color: &mut Self::Color) {
-        let index = self.index_of(color);
-        let lin_rgb = self.colors[index];
-        let srgb: Srgb<u8> = Srgb::from_linear(lin_rgb);
-
-        color.0 = [srgb.red, srgb.green, srgb.blue]
-    }
-
     fn lookup(&self, index: usize) -> Option<Self::Color> {
         self.colors.get(index).map(|&color| {
             let srgb: Srgb<u8> = Srgb::from_linear(color);
@@ -157,6 +133,14 @@ impl ColorMap for PaletteColorMap<LinSrgb> {
 
     fn has_lookup(&self) -> bool {
         true
+    }
+
+    fn map_color(&self, color: &mut Self::Color) {
+        let index = self.index_of(color);
+        let lin_rgb = self.colors[index];
+        let srgb: Srgb<u8> = Srgb::from_linear(lin_rgb);
+
+        color.0 = [srgb.red, srgb.green, srgb.blue]
     }
 }
 
