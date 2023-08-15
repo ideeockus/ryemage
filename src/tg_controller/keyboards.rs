@@ -21,6 +21,7 @@ pub const PIXEL_DIFF_MODE: &str = "Pixel Reflection"; // RgbDiffMapper
 pub const USER_GUIDE: &str = "User Guide";
 pub const BOT_ABOUT: &str = "What is it ??";
 pub const THIRD_BUTTON: &str = "Third Button";
+pub const BACK: &str = "< BACK";
 
 pub fn base_keyboard() -> ReplyMarkup {
     let buttons = [
@@ -31,8 +32,9 @@ pub fn base_keyboard() -> ReplyMarkup {
         ]
     ];
 
-    let mut keyboard = KeyboardMarkup::new(buttons);
-    keyboard.resize_keyboard = Some(true);
+    let mut keyboard = KeyboardMarkup::new(buttons)
+        .resize_keyboard(true);
+        keyboard.input_field_placeholder = Some("Send picture".to_string());
     ReplyMarkup::Keyboard(keyboard)
 }
 
@@ -77,6 +79,7 @@ pub fn recolour_mode_keyboard() -> ReplyMarkup {
 pub fn setting_keyboard() -> ReplyMarkup {
     let buttons = [
         [
+            KeyboardButton::new(BACK),
             KeyboardButton::new(USER_GUIDE),
             KeyboardButton::new(BOT_ABOUT),
             KeyboardButton::new(THIRD_BUTTON),
@@ -88,10 +91,32 @@ pub fn setting_keyboard() -> ReplyMarkup {
     ReplyMarkup::Keyboard(keyboard)
 }
 
-pub const BOT_ABOUT_TEXT: &str = "\
-Этот бот был разработан @idksdump.\
-\
-Ответсвенный за тексты и брендинг - ChatGPT
-Дизайнер иконки - Free Logo Maker
-Вдохновитель - Абстрактная рыжая девушка
-";
+pub fn back_keyboard() -> ReplyMarkup {
+    let buttons = [
+        [
+            KeyboardButton::new(BACK),
+        ]
+    ];
+
+    let mut keyboard = KeyboardMarkup::new(buttons);
+    keyboard.resize_keyboard = Some(true);
+    ReplyMarkup::Keyboard(keyboard)
+}
+
+pub const BOT_ABOUT_TEXT_MD: &str = r#"
+Этот бот разработан: @idksdump
+
+Ответсвенный за тексты и брендинг: *ChatGPT*
+
+Дизайнер иконки: Free Logo Maker
+
+Вдохновитель: _Рыжее_ не\-я в мужском бессознательном
+
+На превью картинка из аниме __"Волчица и прянности"__
+
+**Рожь** \- потомучто я писал этот код в деревне
+
+Этот текст я пока не продумал
+
+Lorem ipsum dolor amet
+"#;

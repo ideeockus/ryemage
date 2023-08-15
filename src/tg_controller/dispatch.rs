@@ -5,7 +5,7 @@ use teloxide::prelude::*;
 use tokio::io::AsyncReadExt;
 use crate::tg_controller::commands::Command;
 use crate::tg_controller::handlers::*;
-use crate::tg_controller::reymage_settings::UserSettings;
+use crate::tg_controller::ryemage_settings::UserSettings;
 use crate::tg_controller::State;
 
 // #[derive(Clone, Default)]
@@ -74,11 +74,13 @@ pub fn schema() -> UpdateHandler<Box<dyn std::error::Error + Send + Sync + 'stat
     use dptree::case;
 
     let command_handler = teloxide::filter_command::<Command, _>()
-        .branch(
-            case![State::Start]
-                .branch(case![Command::Help].endpoint(help))
-                .branch(case![Command::Start].endpoint(start))
-        );
+        .branch(case![Command::Help].endpoint(help))
+        .branch(case![Command::Start].endpoint(start));
+    // .branch(
+    //     case![State::Start]
+    //         .branch(case![Command::Help].endpoint(help))
+    //         .branch(case![Command::Start].endpoint(start)),
+    // );
 
     let message_handler = Update::filter_message()
         // TODO add logging middleware
@@ -86,19 +88,25 @@ pub fn schema() -> UpdateHandler<Box<dyn std::error::Error + Send + Sync + 'stat
         //     teloxide::dptree::endpoint(log_request)
         //     ControlFlow::Continue()
         // })
+        // .branch(
+        //     dptree::entry()
+        //         .endpoint(log_request).map()
+        // )
         .branch(command_handler)
-        .branch(case![State::Start].endpoint(handle_base_action))
+        .branch(case![State::WaitProcessPicture { settings }].endpoint(handle_base_action))
         .branch(case![State::WaitPalettePicture { settings }]
             .endpoint(handle_palette_image))
-        .branch(case![State::WaitProcessPicture { settings }]
-            .endpoint(handle_process_image))
+        // .branch(case![State::WaitProcessPicture { settings }]
+        //     .endpoint(handle_process_image))
         .branch(case![State::ViewSettings { settings }]
             .endpoint(view_settings))
         .branch(dptree::endpoint(invalid_state));
 
-    let callback_query_handler = Update::filter_callback_query().branch(
-        case![State::WaitProcessMode { settings }].endpoint(handle_process_mode),
-    );
+    let callback_query_handler = Update::filter_callback_query()
+        .branch(
+            case![State::WaitProcessPicture { settings }].endpoint(handle_process_mode),
+        )
+        .branch(dptree::endpoint(invalid_state_callback));
 
     dialogue::enter::<Update, InMemStorage<State>, State, _>()
         .branch(message_handler)
