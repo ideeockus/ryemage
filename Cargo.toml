@@ -11,4 +11,7 @@ kmeans_colors = "0.6"
 palette = "0.7"
 color_quant = "1.1"
 rstar = "0.11"
-
+teloxide = { version = "0.12", features = ["macros"] }
+log = "0.4"
+pretty_env_logger = "0.5.0"
+tokio = { version = "1.31", features = ["full"] }

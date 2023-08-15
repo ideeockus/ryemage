@@ -21,10 +21,12 @@ const PIC_7: &str = "res/pic7.jpg";
 const PIC_8: &str = "res/pic8.png";
 const PIC_9: &str = "res/pic9.jpg";
 const PIC_10: &str = "res/pic10.jpg";
+const PIC_11: &str = "res/pic11.jpg";
+const PIC_12: &str = "res/pic12.png";
 
-const DONOR_PIC: &str = PIC_10;
-const RECEPTOR_PIC: &str = PIC_1;
-const PALETTE_QUANTITY: usize = 32;
+const DONOR_PIC: &str = "res/promo/2/pic2.jpg";
+const RECEPTOR_PIC: &str = "res/promo/2/pic1.jpg";
+const PALETTE_QUANTITY: usize = 16;
 
 
 #[test]
@@ -35,7 +37,7 @@ fn test_dither_with_palette() {
     let mut img_to_process = load_image_from_file(RECEPTOR_PIC)
         .expect("Cannot load image");
 
-    let color_mapper = create_lab_palette_mapper(
+    let color_mapper = create_rgb_palette_mapper(
         donor_image,
         PALETTE_QUANTITY,
     );
@@ -61,9 +63,8 @@ fn test_apply_palette_to_image() {
     let img_to_process = load_image_from_file(RECEPTOR_PIC)
         .expect("Cannot load image");
 
-    let color_mapper = create_swap_palette_mapper(
-        &donor_image,
-        &img_to_process,
+    let color_mapper = create_rgb_palette_mapper(
+        donor_image,
         PALETTE_QUANTITY,
     );
 
@@ -95,7 +96,7 @@ fn test_swap_palette() {
     );
 
     let mut img_to_process = img_to_process.to_rgb8();
-    img_to_process.dither_with_palette(color_mapper);
+    img_to_process.apply_palette_to_image(color_mapper);
     img_to_process.save_with_format(
         "gen_test_swap",
         ImageFormat::Png,

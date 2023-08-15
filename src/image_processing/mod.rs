@@ -15,6 +15,7 @@ use palette::cast::{from_component_slice, into_component_slice};
 
 use color_mappers::LabPaletteMapper;
 use color_mappers::RgbPaletteMapper;
+pub use color_mappers::RgbColorMap;
 
 use crate::image_processing::utils::load_image_from_unknown_reader;
 

@@ -16,18 +16,33 @@ use crate::image_processing::color_mappers::{LabPaletteMapper, RgbPaletteMapper,
 use crate::image_processing::utils::{downscale_to_size, load_image_from_unknown_reader};
 
 const RUN_AMOUNT: u16 = 3;
-const MAX_ITER: usize = 10;
+const MAX_ITER: usize = 5;
 const IMAGE_SIZE: (u32, u32) = (256, 256);
 
 
 fn find_kmeans_clusters<C: Calculate + Clone>(img_buf: &[C], quantity: usize, converge: f32) -> Kmeans<C> {
     let mut result = Kmeans::new();
 
+    let max_iter = match quantity {
+        ..=16 => {
+            15
+        }
+        17..=64 => {
+            10
+        }
+        65..=128 => {
+            5
+        }
+        _ => {
+            3
+        }
+    };
+
     let seed = 351;
     for i in 0..RUN_AMOUNT {
         let run_result = get_kmeans(
             quantity,
-            MAX_ITER,
+            max_iter,
             converge,
             true,
             img_buf,
@@ -113,6 +128,7 @@ pub fn create_swap_palette_mapper(img_to_process: &DynamicImage, palette_img: &D
     let sorted_palette_1 = get_image_lin_rgb_palette(&palette_img, quantity, true);
     let sorted_palette_2 = get_image_lin_rgb_palette(&img_to_process, quantity, true);
 
+    // TODO fix case if one of pictures has small color set
     SwapPaletteMapper::new(sorted_palette_1, sorted_palette_2).unwrap()
 }
 
