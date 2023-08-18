@@ -1,9 +1,13 @@
+use std::ops::Deref;
+use std::sync::{Arc, Mutex};
+use log::error;
 use teloxide::dispatching::{dialogue, UpdateHandler};
 use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::net::Download;
 use teloxide::payloads::SendMessage;
 use teloxide::prelude::*;
-use teloxide::types::{KeyboardButton, KeyboardMarkup, Me, ParseMode, ReplyMarkup, User};
+use teloxide::types::{InputFile, InputMedia, ParseMode};
+use crate::image_processing::{PaletteMapperMode, perform_action_on_files};
 
 use crate::tg_controller::commands::Command;
 use crate::tg_controller::keyboards::*;
@@ -97,8 +101,8 @@ pub async fn handle_base_action(
 
         dialogue.update(State::WaitProcessPicture {
             settings: UserSettings {
-                file_id: Some(file_id),
-                palette_mapper: settings.palette_mapper,
+                process_file_id: Some(file_id),
+                palette_file_id: settings.palette_file_id,
             },
         }).await?;
 
@@ -144,12 +148,12 @@ pub async fn handle_palette_image(
         let file_id = photo_size.file.id.clone();
         download_file_by_id(&bot, &file_id).await?;
 
-
         // TODO create PaletteMapper
         dialogue.update(State::WaitProcessPicture {
             settings: UserSettings {
-                file_id: settings.file_id,
-                palette_mapper: None,
+                process_file_id: settings.process_file_id,
+                palette_file_id: Some(file_id),
+                // TODO fix unwrap etc
             },
         }).await?;
 
@@ -188,21 +192,22 @@ pub async fn handle_process_mode(
 ) -> HandlerResult {
     log::debug!("got process image");
 
-    let (file_id, palette_mapper) = match settings {
+    let (process_file_id, palette_file_id) = match settings {
         UserSettings {
-            file_id: Some(file_id),
-            palette_mapper: Some(palette_mapper),
+            process_file_id: Some(process_file_id),
+            palette_file_id: Some(palette_file_id),
+            // palette_mapper: Some(palette_mapper),
         } => {
-            (file_id, palette_mapper)
+            (process_file_id, palette_file_id)
         }
         UserSettings {
-            file_id,
-            palette_mapper,
+            process_file_id,
+            palette_file_id,
         } => {
-            if file_id.is_none() {
+            if process_file_id.is_none() {
                 bot.send_message(q.from.id, "Hmmm. Seems i can't find file to process").await?;
             }
-            if palette_mapper.is_none() {
+            if palette_file_id.is_none() {
                 bot.send_message(q.from.id, "Hmmm. Did you press button with sign \"Build Palette\"?").await?;
             }
 
@@ -214,7 +219,39 @@ pub async fn handle_process_mode(
         }
     };
 
-    match q.data {
+    match q.data.as_deref() {
+        Some(SIMPLE_LAB_MODE) => {
+            let palette_file_name = get_downloads_dir().join(palette_file_id);
+            let process_file_name = get_downloads_dir().join(process_file_id);
+            // TODO fix this, use normal API
+            // let mut img = load_image_from_file(&filename).unwrap().to_rgb8();
+
+            // let palette_mapper = palette_mapper.as_ref().lock().unwrap();
+            // img.apply_palette_to_image(palette_mapper.deref());
+            // img.save(filename.join("_processed")).unwrap();
+            let processed = perform_action_on_files(
+                &palette_file_name,
+                &process_file_name,
+                PaletteMapperMode::SimpleLab,
+            );
+
+            match processed {
+                Ok(v) => {
+                    bot.send_photo(
+                        q.from.id,
+                        InputFile::memory(v),
+                    ).await?;
+                }
+                Err(err) => {
+                    error!("Image processing error {}", err);
+
+                    bot.send_message(
+                        q.from.id,
+                        "Error occurred during image processing. Please contact the developer"
+                    ).await?;
+                }
+            }
+        }
         Some(t) => {
             bot.send_message(
                 q.from.id,
@@ -222,7 +259,7 @@ pub async fn handle_process_mode(
             ).await?;
             bot.send_message(
                 q.from.id,
-                format!("I see you have uploaded file {file_id} and have palette"),
+                format!("I see you have uploaded file {process_file_id} and have palette"),
             ).await?;
             bot.answer_callback_query(q.id).await?;
         }

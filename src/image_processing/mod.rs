@@ -3,19 +3,27 @@ use std::io;
 use std::io::{BufReader, Cursor, Read};
 use std::ops::Index;
 use std::path::Path;
+use std::time::SystemTime;
 
 use color_quant::NeuQuant;
-use image::{DynamicImage, ImageBuffer, ImageEncoder, ImageOutputFormat, Rgb, RgbImage};
+use image::{DynamicImage, ImageBuffer, ImageEncoder, ImageFormat, ImageOutputFormat, Rgb, RgbImage};
 use image::codecs::png::FilterType::NoFilter;
 use image::imageops::{ColorMap, dither, index_colors};
 use image::io::Reader as ImageReader;
 use kmeans_colors::{get_kmeans, Kmeans, MapColor};
+use log::info;
 use palette::{FromColor, IntoColor, Lab, Srgb};
 use palette::cast::{from_component_slice, into_component_slice};
 
 use color_mappers::LabPaletteMapper;
-use color_mappers::RgbPaletteMapper;
 pub use color_mappers::RgbColorMap;
+use color_mappers::RgbPaletteMapper;
+pub use palette_extraction::create_lab_palette_mapper;
+pub use palette_extraction::create_rgb_palette_mapper;
+pub use palette_extraction::create_swap_palette_mapper;
+pub use utils::load_image_from_file;
+use crate::image_processing::errors::{ImageProcessingError, ImageProcessingResult};
+use crate::image_processing::palette_operations::PaletteOperations;
 
 use crate::image_processing::utils::load_image_from_unknown_reader;
 
@@ -26,110 +34,69 @@ mod color_mappers;
 
 #[cfg(test)]
 mod tests;
+mod errors;
+mod palette_operations;
 
-trait PaletteOperations {
-    fn apply_palette_to_image(&mut self, palette: impl ColorMap<Color=Rgb<u8>>) -> &mut Self;
-    fn dither_with_palette(&mut self, palette: impl ColorMap<Color=Rgb<u8>>) -> &mut Self;
-    // fn swap_palette<Pal>(&mut self, palette: Pal) -> &mut Self
-    //     where
-    //         Pal: ColorMap<Color=Rgb<u8>> + LimitedColorSet;
-    // fn swap_palette_differentiate(&mut self, palette: impl ColorMap<Color=Rgb<u8>>) -> &mut Self;
+const DEFAULT_QUANTITY: usize = 32;
+
+// TODO add mode params to enum
+#[derive(Debug)]
+pub enum PaletteMapperMode {
+    SimpleLab,  // replace with color from palette with shortest chromatic distance
+    SimpleRgb,  // replace with color from palette with shortest distance
+    RgbDither,  // replace with color from palette with shortest distance using dithering
+    NeuQuant,  // train neural network and perform palette replacement
+    RgbSwap,  // reduce colors to palette_ and swap to complimentary color from palette_2
+    PixelDiff,  // ???
+    LabChromaEq, //  make a* and b* components of LAB equal
 }
 
-impl PaletteOperations for RgbImage {
-    fn apply_palette_to_image(&mut self, palette: impl ColorMap<Color=Rgb<u8>>) -> &mut Self {
-        println!("loaded image: {:?}", self.dimensions());
-        println!("Start image processing");
-        for pixel in self.pixels_mut() {
-            palette.map_color(pixel)
+pub fn perform_action_on_files(
+    palette_image: &Path,
+    img_to_process: &Path,
+    mode: PaletteMapperMode,
+) -> ImageProcessingResult {
+    let start = SystemTime::now();
+
+    let palette_image = load_image_from_file(palette_image)?;
+    let img_to_process = load_image_from_file(img_to_process)?;
+
+    // let color_mapper = create_swap_palette_mapper(
+    //     &donor_image,
+    //     &img_to_process,
+    //     PALETTE_QUANTITY,
+    // );
+
+    let color_mapper = match mode {
+        PaletteMapperMode::SimpleLab => {
+            create_lab_palette_mapper(palette_image, DEFAULT_QUANTITY)
         }
-        println!("source img buf is {:?}", self.len());
-        println!("source img dimensions {:?}", self.dimensions());
+        // PaletteMapperMode::SimpleRgb => {}
+        // PaletteMapperMode::RgbDither => {}
+        // PaletteMapperMode::NeuQuant => {}
+        // PaletteMapperMode::RgbSwap => {}
+        // PaletteMapperMode::PixelDiff => {}
+        // PaletteMapperMode::LabChromaEq => {}
+        _ => {
+            return Err(ImageProcessingError::UnsupportedMode)
+        }
+    };
 
-        self
-    }
+    let mut img_to_process = img_to_process.to_rgb8();
+    img_to_process.apply_palette_to_image(color_mapper);
+    // img_to_process.save_with_format(
+    //     "gen_test_swap",
+    //     ImageFormat::Png,
+    // ).expect("Failed to save file");
+    let mut result = Vec::with_capacity(img_to_process.len());
+    let mut result = Cursor::new(result);
+    img_to_process.write_to(&mut result, ImageFormat::Png)?;
 
-    fn dither_with_palette(&mut self, palette: impl ColorMap<Color=Rgb<u8>>) -> &mut Self {
-        println!("loaded image: {:?}", self.dimensions());
-        println!("Start image processing");
-        dither(
-            self,
-            &palette,
-        );
+    let end = SystemTime::now();
+    let duration = end.duration_since(start).unwrap();
+    info!("performing action {mode:?} took {} seconds", duration.as_secs());
 
-        self
-    }
-
-    // fn swap_palette<Pal>(&mut self, palette: Pal) -> &mut Self
-    //     where
-    //         Pal: ColorMap<Color=Rgb<u8>> + LimitedColorSet
-    // {
-    //     println!("loaded image: {:?}", self.dimensions());
-    //     println!("Detecting image own palette");
-    //     let self_palette = PaletteColorMap::new(get_image_rgb_palette(
-    //         DynamicImage::ImageRgb8(self.clone()),
-    //         palette.color_set_size(),
-    //         true,
-    //     ));
-    //
-    //     println!("Start image processing");
-    //     for pixel in self.pixels_mut() {
-    //         let color_index = self_palette.index_of(pixel);
-    //         let complimentary_color = palette.lookup(color_index).unwrap();
-    //         pixel.0 = complimentary_color.0;
-    //     }
-    //
-    //     self
-    // }
-
-    // fn swap_palette_differentiate(&mut self, palette: impl ColorMap<Color=Rgb<u8>>) -> &mut Self {
-    //     println!("loaded image: {:?}", self.dimensions());
-    //     println!("Detecting image own palette");
-    //
-    //     println!("Start image processing");
-    //     dither(
-    //         self,
-    //         &palette,
-    //     );
-    //
-    //     self
-    // }
+    Ok(result.into_inner())
 }
 
-//
-// pub fn apply_palette_to_image(mut img: RgbImage, palette: impl ColorMap<Color=Rgb<u8>>) -> RgbImage {
-//     let mut img = load_image_from_unknown_reader(reader)
-//         .expect("Cannot load image")
-//         .to_rgb8();
-//
-//     println!("loaded image: {:?}", img.dimensions());
-//     println!("Start image processing");
-//     for pixel in img.pixels_mut() {
-//         palette.map_color(pixel)
-//     }
-//     println!("source img buf is {:?}", img.len());
-//     println!("source img dimensions {:?}", img.dimensions());
-//
-//     // let mut result_buf: Vec<u8> = Vec::new();
-//     // img.write_to(&mut Cursor::new(&mut result_buf), ImageOutputFormat::Png).unwrap();
-//     img.to_vec()
-// }
-//
-// pub fn dither_with_palette(mut reader: impl Read, palette: impl ColorMap<Color=Rgb<u8>>) -> Vec<u8> {
-//     let mut img = load_image_from_unknown_reader(reader)
-//         .expect("Cannot load image")
-//         .to_rgb8();
-//
-//     println!("loaded image: {:?}", img.dimensions());
-//     println!("Start image processing");
-//     dither(
-//         &mut img,
-//         &palette,
-//     );
-//
-//     // let mut result_buf: Vec<u8> = Vec::new();
-//     // img.write_to(&mut Cursor::new(&mut result_buf), ImageOutputFormat::Png).unwrap();
-//     // img.save("empty.jpg")?;
-//     // result_buf
-//     img.to_vec()
-// }
+
