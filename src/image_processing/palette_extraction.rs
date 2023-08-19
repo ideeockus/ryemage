@@ -94,27 +94,27 @@ fn get_image_lin_rgb_palette(img: &RgbImage, quantity: usize, need_sort: bool) -
 }
 
 
-pub fn create_lab_palette_mapper(img: DynamicImage, quantity: usize) -> LabPaletteMapper {
+pub fn create_lab_palette_mapper(img: DynamicImage, quantity: usize) -> Box<dyn ColorMap<Color=(Rgb<u8>)>> {
     let img = downscale_to_size(&img, IMAGE_SIZE, FilterType::Nearest)
         .unwrap_or(img)
         .to_rgb8();
 
     let unsorted_palette = get_image_lab_palette(&img, quantity, false);
 
-    LabPaletteMapper::new(unsorted_palette)
+    Box::new(LabPaletteMapper::new(unsorted_palette))
 }
 
-pub fn create_rgb_palette_mapper(img: DynamicImage, quantity: usize) -> RgbPaletteMapper {
+pub fn create_rgb_palette_mapper(img: DynamicImage, quantity: usize) -> Box<dyn ColorMap<Color=(Rgb<u8>)>> {
     let img = downscale_to_size(&img, IMAGE_SIZE, FilterType::Nearest)
         .unwrap_or(img)
         .to_rgb8();
 
     let unsorted_palette = get_image_lin_rgb_palette(&img, quantity, false);
 
-    RgbPaletteMapper::new(unsorted_palette)
+    Box::new(RgbPaletteMapper::new(unsorted_palette))
 }
 
-pub fn create_swap_palette_mapper(img_to_process: &DynamicImage, palette_img: &DynamicImage, quantity: usize) -> SwapPaletteMapper {
+pub fn create_swap_palette_mapper(img_to_process: &DynamicImage, palette_img: &DynamicImage, quantity: usize) -> Box<dyn ColorMap<Color=(Rgb<u8>)>> {
     let palette_img = match downscale_to_size(palette_img, IMAGE_SIZE, FilterType::Nearest) {
         None => palette_img.to_rgb8(),
         Some(scaled) => scaled.to_rgb8(),
@@ -129,7 +129,7 @@ pub fn create_swap_palette_mapper(img_to_process: &DynamicImage, palette_img: &D
     let sorted_palette_2 = get_image_lin_rgb_palette(&img_to_process, quantity, true);
 
     // TODO fix case if one of pictures has small color set
-    SwapPaletteMapper::new(sorted_palette_1, sorted_palette_2).unwrap()
+    Box::new(SwapPaletteMapper::new(sorted_palette_1, sorted_palette_2).unwrap())
 }
 
 

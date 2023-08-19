@@ -220,7 +220,17 @@ pub async fn handle_process_mode(
     };
 
     match q.data.as_deref() {
-        Some(SIMPLE_LAB_MODE) => {
+        Some(PIXEL_DIFF_MODE) | Some(NEU_QUANT_MODE) | Some(RGB_DITHER_MODE) => {
+            bot.send_message(
+                q.from.id,
+                format!("Mode {t} in development stage. Try a bit later.."),
+            ).await?;
+            bot.send_message(
+                q.from.id,
+                format!("I see you have uploaded file {process_file_id} and have palette"),
+            ).await?;
+        }
+        Some(mode) => {
             let palette_file_name = get_downloads_dir().join(palette_file_id);
             let process_file_name = get_downloads_dir().join(process_file_id);
             // TODO fix this, use normal API
@@ -232,7 +242,7 @@ pub async fn handle_process_mode(
             let processed = perform_action_on_files(
                 &palette_file_name,
                 &process_file_name,
-                PaletteMapperMode::SimpleLab,
+                mode.into(),
             );
 
             match processed {
@@ -247,26 +257,17 @@ pub async fn handle_process_mode(
 
                     bot.send_message(
                         q.from.id,
-                        "Error occurred during image processing. Please contact the developer"
+                        "Error occurred during image processing. Please contact the developer",
                     ).await?;
                 }
             }
-        }
-        Some(t) => {
-            bot.send_message(
-                q.from.id,
-                format!("Mode {t} in development stage. Try a bit later.."),
-            ).await?;
-            bot.send_message(
-                q.from.id,
-                format!("I see you have uploaded file {process_file_id} and have palette"),
-            ).await?;
-            bot.answer_callback_query(q.id).await?;
         }
         _ => {
             bot.send_message(q.from.id, "Something goes wrong").await?;
         }
     }
+
+    bot.answer_callback_query(q.id).await?;
 
     Ok(())
 }

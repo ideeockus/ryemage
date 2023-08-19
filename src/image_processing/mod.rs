@@ -71,10 +71,18 @@ pub fn perform_action_on_files(
         PaletteMapperMode::SimpleLab => {
             create_lab_palette_mapper(palette_image, DEFAULT_QUANTITY)
         }
-        // PaletteMapperMode::SimpleRgb => {}
+        PaletteMapperMode::SimpleRgb => {
+            create_rgb_palette_mapper(palette_image, DEFAULT_QUANTITY)
+        }
         // PaletteMapperMode::RgbDither => {}
         // PaletteMapperMode::NeuQuant => {}
-        // PaletteMapperMode::RgbSwap => {}
+        PaletteMapperMode::RgbSwap => {
+            create_swap_palette_mapper(
+                &img_to_process,
+                &palette_image,
+                DEFAULT_QUANTITY
+            )
+        }
         // PaletteMapperMode::PixelDiff => {}
         // PaletteMapperMode::LabChromaEq => {}
         _ => {
