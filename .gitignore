@@ -5,3 +5,4 @@ gen_test_*
 res/
 venv/
 produced/
+tg_downloads
