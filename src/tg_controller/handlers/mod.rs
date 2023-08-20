@@ -1,19 +1,19 @@
+use crate::image_processing::PaletteMapperMode;
+use crate::tg_controller::keyboards::*;
+use crate::tg_controller::{get_downloads_dir, State};
 use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::net::Download;
 use teloxide::prelude::*;
-use crate::image_processing::PaletteMapperMode;
-use crate::tg_controller::{get_downloads_dir, State};
-use crate::tg_controller::keyboards::*;
 
-pub use image_processing::*;
 pub use commands::*;
-pub use middleware::*;
 pub use common::*;
+pub use image_processing::*;
+pub use middleware::*;
 
-mod image_processing;
 mod commands;
-mod middleware;
 mod common;
+mod image_processing;
+mod middleware;
 
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
 type HandlerResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
@@ -27,7 +27,7 @@ impl PaletteMapperMode {
             NEU_QUANT_MODE => Some(PaletteMapperMode::NeuQuant),
             RGB_SWAP_MODE => Some(PaletteMapperMode::RgbSwap),
             PIXEL_DIFF_MODE => Some(PaletteMapperMode::PixelDiff),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -40,7 +40,6 @@ async fn download_file_by_id(bot: &Bot, file_id: &str) -> HandlerResult {
 
     Ok(())
 }
-
 
 fn log_request(log_text: &str, msg: &Message) {
     log::debug!("{}", log_text);

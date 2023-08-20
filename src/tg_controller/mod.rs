@@ -1,20 +1,19 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::time::Duration;
+
 use log::info;
 
 use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::prelude::*;
-use teloxide::update_listeners::Polling;
 
 use crate::tg_controller::dispatch::schema;
 use crate::tg_controller::ryemage_settings::UserSettings;
 
 mod commands;
 mod dispatch;
-mod ryemage_settings;
-mod keyboards;
 mod handlers;
+mod keyboards;
+mod ryemage_settings;
 
 const DOWNLOADED_FILES_PATH: &str = "tg_downloads";
 
@@ -26,19 +25,6 @@ fn get_downloads_dir() -> PathBuf {
 
     tg_downloads_path.to_path_buf()
 }
-
-pub async fn run_bot() {
-    info!("Starting throw dice bot...");
-
-    let bot = Bot::from_env();
-
-    teloxide::repl(bot, |bot: Bot, msg: Message| async move {
-        bot.send_dice(msg.chat.id).await?;
-        Ok(())
-    })
-        .await;
-}
-
 
 #[derive(Clone, Default)]
 pub enum State {
@@ -54,7 +40,6 @@ pub enum State {
         settings: UserSettings,
     },
 }
-
 
 pub async fn run_polling() {
     info!("Run telegram polling...");

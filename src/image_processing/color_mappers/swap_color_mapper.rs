@@ -1,15 +1,9 @@
-use std::cmp::Ordering;
-use std::fmt::Debug;
-use std::marker::PhantomData;
-use std::ops::Index;
-
 use image::imageops::ColorMap;
 use log::debug;
-use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb};
-use palette::cast::{ArraysFrom, from_array, from_component_slice};
-use palette::color_difference::{EuclideanDistance, HyAb};
-use palette::rgb::Rgb;
-use rstar::{AABB, Envelope, Point, PointDistance, RTree, RTreeObject};
+use palette::cast::from_array;
+use palette::{IntoColor, LinSrgb, Srgb};
+
+use rstar::RTree;
 
 use crate::image_processing::color_mappers::IndexedColor;
 
@@ -19,9 +13,12 @@ pub struct SwapPaletteMapper {
 }
 
 impl SwapPaletteMapper {
-    pub fn new(color_palette_1: Vec<LinSrgb>, color_palette_2: Vec<LinSrgb>) -> Option<Self>
-    {
-        debug!("SwapPaletteMapper with {:?} and {:?} creating", color_palette_1.len(), color_palette_2.len());
+    pub fn new(color_palette_1: Vec<LinSrgb>, color_palette_2: Vec<LinSrgb>) -> Option<Self> {
+        debug!(
+            "SwapPaletteMapper with {:?} and {:?} creating",
+            color_palette_1.len(),
+            color_palette_2.len()
+        );
         // if color_palette_1.len() != color_palette_2.len() {
         //     return None
         // }
@@ -51,13 +48,12 @@ impl SwapPaletteMapper {
         }
 
         let indexed_lab_colors = color_palette_1
-            .into_iter().enumerate()
-            .map(|(index, color)| {
-                IndexedColor { index, color }
-            })
+            .into_iter()
+            .enumerate()
+            .map(|(index, color)| IndexedColor { index, color })
             .collect();
 
-        let mut color_set_tree = RTree::bulk_load(indexed_lab_colors);
+        let color_set_tree = RTree::bulk_load(indexed_lab_colors);
         debug!("SwapPaletteMapper created");
 
         Some(Self {
@@ -67,11 +63,10 @@ impl SwapPaletteMapper {
     }
 
     fn get_nearest_color(&self, color: LinSrgb) -> &IndexedColor<LinSrgb> {
-        let indexed_color = self.color_palette_1.nearest_neighbor(&[
-            color.red,
-            color.green,
-            color.blue,
-        ]).unwrap();
+        let indexed_color = self
+            .color_palette_1
+            .nearest_neighbor(&[color.red, color.green, color.blue])
+            .unwrap();
 
         indexed_color
     }

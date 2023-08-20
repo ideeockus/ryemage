@@ -1,5 +1,5 @@
-use std::{fmt, io};
 use std::fmt::Debug;
+use std::{fmt, io};
 
 use image::ImageError;
 
@@ -23,7 +23,6 @@ impl fmt::Display for ImageProcessingError {
 }
 
 impl std::error::Error for ImageProcessingError {}
-
 
 impl From<io::Error> for ImageProcessingError {
     fn from(value: io::Error) -> Self {

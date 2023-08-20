@@ -1,5 +1,7 @@
-use teloxide::types::{InlineKeyboardButton, InlineKeyboardButtonKind, InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, ReplyMarkup};
-use crate::image_processing::PaletteMapperMode;
+use teloxide::types::{
+    InlineKeyboardButton, InlineKeyboardButtonKind, InlineKeyboardMarkup, KeyboardButton,
+    KeyboardMarkup, ReplyMarkup,
+};
 
 // pub const BASE_KEYBOARD: [[&str;3];1] = [
 //     ["Build Palette", "Recolour", "Settings"]
@@ -25,17 +27,14 @@ pub const THIRD_BUTTON: &str = "Third Button";
 pub const BACK: &str = "< BACK";
 
 pub fn base_keyboard() -> ReplyMarkup {
-    let buttons = [
-        [
-            KeyboardButton::new(BUILD_PALETTE),
-            KeyboardButton::new(RECOLOUR),
-            KeyboardButton::new(SETTINGS),
-        ]
-    ];
+    let buttons = [[
+        KeyboardButton::new(BUILD_PALETTE),
+        KeyboardButton::new(RECOLOUR),
+        KeyboardButton::new(SETTINGS),
+    ]];
 
-    let mut keyboard = KeyboardMarkup::new(buttons)
-        .resize_keyboard(true);
-        keyboard.input_field_placeholder = Some("Send picture".to_string());
+    let mut keyboard = KeyboardMarkup::new(buttons).resize_keyboard(true);
+    keyboard.input_field_placeholder = Some("Send picture".to_string());
     ReplyMarkup::Keyboard(keyboard)
 }
 
@@ -73,19 +72,17 @@ pub fn recolour_mode_keyboard() -> ReplyMarkup {
         ],
     ];
 
-    let mut keyboard = InlineKeyboardMarkup::new(buttons);
+    let keyboard = InlineKeyboardMarkup::new(buttons);
     ReplyMarkup::InlineKeyboard(keyboard)
 }
 
 pub fn setting_keyboard() -> ReplyMarkup {
-    let buttons = [
-        [
-            KeyboardButton::new(BACK),
-            KeyboardButton::new(USER_GUIDE),
-            KeyboardButton::new(BOT_ABOUT),
-            KeyboardButton::new(THIRD_BUTTON),
-        ]
-    ];
+    let buttons = [[
+        KeyboardButton::new(BACK),
+        KeyboardButton::new(USER_GUIDE),
+        KeyboardButton::new(BOT_ABOUT),
+        KeyboardButton::new(THIRD_BUTTON),
+    ]];
 
     let mut keyboard = KeyboardMarkup::new(buttons);
     keyboard.resize_keyboard = Some(true);
@@ -93,11 +90,7 @@ pub fn setting_keyboard() -> ReplyMarkup {
 }
 
 pub fn back_keyboard() -> ReplyMarkup {
-    let buttons = [
-        [
-            KeyboardButton::new(BACK),
-        ]
-    ];
+    let buttons = [[KeyboardButton::new(BACK)]];
 
     let mut keyboard = KeyboardMarkup::new(buttons);
     keyboard.resize_keyboard = Some(true);

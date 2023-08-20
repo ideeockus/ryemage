@@ -1,13 +1,7 @@
-use std::cmp::Ordering;
-use std::fmt::Debug;
-use std::marker::PhantomData;
-use std::ops::Index;
-
 use image::imageops::ColorMap;
-use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb};
-use palette::cast::{ArraysFrom, from_array, from_component_slice};
-use palette::color_difference::{EuclideanDistance, HyAb};
-use palette::rgb::Rgb;
+use palette::cast::from_array;
+use palette::{FromColor, IntoColor, Lab, Srgb};
+
 use rstar::RTree;
 
 use crate::image_processing::color_mappers::IndexedColor;
@@ -17,18 +11,16 @@ pub struct LabPaletteMapper {
 }
 
 impl LabPaletteMapper {
-    pub fn new(colors: Vec<Lab>) -> Self
-    {
+    pub fn new(colors: Vec<Lab>) -> Self {
         println!("PaletteColorMap with {:?} created", colors);
 
         let indexed_lab_colors = colors
-            .into_iter().enumerate()
-            .map(|(index, color)| {
-                IndexedColor { index, color }
-            })
+            .into_iter()
+            .enumerate()
+            .map(|(index, color)| IndexedColor { index, color })
             .collect();
 
-        let mut color_set_tree = RTree::bulk_load(indexed_lab_colors);
+        let color_set_tree = RTree::bulk_load(indexed_lab_colors);
 
         Self {
             colors_tree: color_set_tree,
@@ -36,10 +28,10 @@ impl LabPaletteMapper {
     }
 
     fn get_nearest_color(&self, color_lab: Lab) -> &IndexedColor<Lab> {
-        let indexed_color = self.colors_tree.nearest_neighbor(&[
-            color_lab.a,
-            color_lab.b,
-        ]).unwrap();
+        let indexed_color = self
+            .colors_tree
+            .nearest_neighbor(&[color_lab.a, color_lab.b])
+            .unwrap();
 
         indexed_color
     }

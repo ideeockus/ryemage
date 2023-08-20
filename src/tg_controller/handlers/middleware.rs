@@ -1,6 +1,7 @@
-use teloxide::prelude::*;
 use crate::tg_controller::handlers::HandlerResult;
+use teloxide::prelude::*;
 
+#[allow(unused)]
 pub async fn log_request_handler(msg: Message) -> HandlerResult {
     match msg.from() {
         None => {

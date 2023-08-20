@@ -1,4 +1,3 @@
-use tg_controller::run_bot;
 use crate::tg_controller::run_polling;
 
 mod image_processing;
