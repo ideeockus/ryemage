@@ -1,34 +1,33 @@
-use crate::image_processing::PaletteMapperMode;
-use crate::tg_controller::keyboards::*;
-use crate::tg_controller::{get_downloads_dir, State};
 use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::net::Download;
 use teloxide::prelude::*;
 
 pub use commands::*;
 pub use common::*;
-pub use image_processing::*;
 pub use middleware::*;
+pub use base::*;
+
+use crate::{get_downloads_dir, State};
+use crate::keyboards::*;
+use image_processing::PaletteMapperMode;
 
 mod commands;
 mod common;
-mod image_processing;
 mod middleware;
+mod base;
 
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
 type HandlerResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
 
-impl PaletteMapperMode {
-    fn from_mode_name(value: &str) -> Option<Self> {
-        match value {
-            SIMPLE_LAB_MODE => Some(PaletteMapperMode::SimpleLab),
-            SIMPLE_RGB_MODE => Some(PaletteMapperMode::SimpleRgb),
-            RGB_DITHER_MODE => Some(PaletteMapperMode::RgbDither),
-            NEU_QUANT_MODE => Some(PaletteMapperMode::NeuQuant),
-            RGB_SWAP_MODE => Some(PaletteMapperMode::RgbSwap),
-            PIXEL_DIFF_MODE => Some(PaletteMapperMode::PixelDiff),
-            _ => None,
-        }
+fn mode_from_mode_name(value: &str) -> Option<PaletteMapperMode> {
+    match value {
+        SIMPLE_LAB_MODE => Some(PaletteMapperMode::SimpleLab),
+        SIMPLE_RGB_MODE => Some(PaletteMapperMode::SimpleRgb),
+        RGB_DITHER_MODE => Some(PaletteMapperMode::RgbDither),
+        NEU_QUANT_MODE => Some(PaletteMapperMode::NeuQuant),
+        RGB_SWAP_MODE => Some(PaletteMapperMode::RgbSwap),
+        PIXEL_DIFF_MODE => Some(PaletteMapperMode::PixelDiff),
+        _ => None,
     }
 }
 

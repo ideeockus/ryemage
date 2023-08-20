@@ -1,13 +1,11 @@
-use image::imageops::{ColorMap, FilterType};
 use image::{DynamicImage, Rgb, RgbImage};
-use kmeans_colors::{get_kmeans, Calculate, Kmeans, Sort};
-use palette::cast::from_component_slice;
+use image::imageops::{ColorMap, FilterType};
+use kmeans_colors::{Calculate, get_kmeans, Kmeans, Sort};
 use palette::{IntoColor, Lab, LinSrgb, Srgb};
+use palette::cast::from_component_slice;
 
-use crate::image_processing::color_mappers::{
-    LabPaletteMapper, RgbPaletteMapper, SwapPaletteMapper,
-};
-use crate::image_processing::utils::downscale_to_size;
+use crate::color_mappers::{LabPaletteMapper, RgbPaletteMapper, SwapPaletteMapper};
+use crate::utils::downscale_to_size;
 
 const RUN_AMOUNT: u16 = 3;
 #[allow(unused)]

@@ -1,7 +1,5 @@
-use crate::tg_controller::run_polling;
-
-mod image_processing;
-mod tg_controller;
+use pretty_env_logger;
+use tg_controller::run_polling;
 
 #[tokio::main]
 async fn main() {

@@ -1,11 +1,10 @@
 use image::imageops::ColorMap;
 use log::debug;
-use palette::cast::from_array;
 use palette::{IntoColor, LinSrgb, Srgb};
-
+use palette::cast::from_array;
 use rstar::RTree;
 
-use crate::image_processing::color_mappers::IndexedColor;
+use crate::color_mappers::IndexedColor;
 
 pub struct SwapPaletteMapper {
     color_palette_1: RTree<IndexedColor<LinSrgb>>,

@@ -1,8 +1,9 @@
-use crate::tg_controller::handlers::{log_request, HandlerResult, MyDialogue};
-use crate::tg_controller::keyboards::base_keyboard;
-use crate::tg_controller::ryemage_settings::UserSettings;
-use crate::tg_controller::State;
 use teloxide::prelude::*;
+
+use crate::handlers::{HandlerResult, log_request, MyDialogue};
+use crate::keyboards::base_keyboard;
+use crate::ryemage_settings::UserSettings;
+use crate::State;
 
 // currently unused
 #[allow(unused)]

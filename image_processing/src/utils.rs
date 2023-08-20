@@ -7,8 +7,8 @@ use image::imageops::FilterType;
 use image::io::Reader as ImageReader;
 use image::DynamicImage;
 
-// const IMAGE_SIZE_LIMIT: (u32, u32) = (1280, 1280);
-const IMAGE_SIZE_LIMIT: (u32, u32) = (512, 512);
+const IMAGE_SIZE_LIMIT: (u32, u32) = (1280, 1280);
+// const IMAGE_SIZE_LIMIT: (u32, u32) = (512, 512);
 
 pub fn downscale_to_size(
     img: &DynamicImage,

@@ -1,11 +1,9 @@
-use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::dispatching::{dialogue, UpdateHandler};
+use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::prelude::*;
-
-use crate::tg_controller::commands::Command;
-use crate::tg_controller::handlers::*;
-
-use crate::tg_controller::State;
+use crate::commands::Command;
+use crate::handlers::*;
+use crate::State;
 
 pub fn schema() -> UpdateHandler<Box<dyn std::error::Error + Send + Sync + 'static>> {
     use dptree::case;

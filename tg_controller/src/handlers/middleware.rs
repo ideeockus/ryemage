@@ -1,5 +1,6 @@
-use crate::tg_controller::handlers::HandlerResult;
 use teloxide::prelude::*;
+
+use crate::handlers::HandlerResult;
 
 #[allow(unused)]
 pub async fn log_request_handler(msg: Message) -> HandlerResult {

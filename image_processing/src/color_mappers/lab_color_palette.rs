@@ -1,10 +1,9 @@
 use image::imageops::ColorMap;
-use palette::cast::from_array;
 use palette::{FromColor, IntoColor, Lab, Srgb};
-
+use palette::cast::from_array;
 use rstar::RTree;
 
-use crate::image_processing::color_mappers::IndexedColor;
+use crate::color_mappers::IndexedColor;
 
 pub struct LabPaletteMapper {
     colors_tree: RTree<IndexedColor<Lab>>,

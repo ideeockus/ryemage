@@ -1,14 +1,12 @@
 use log::{debug, error};
-
 use teloxide::prelude::*;
 use teloxide::types::{ChatAction, InputFile, ParseMode};
 
-use crate::image_processing::{perform_action_on_files, PaletteMapperMode};
-use crate::tg_controller::{get_downloads_dir, State};
-
-use crate::tg_controller::handlers::{download_file_by_id, log_request, HandlerResult, MyDialogue};
-use crate::tg_controller::keyboards::*;
-use crate::tg_controller::ryemage_settings::UserSettings;
+use image_processing::perform_action_on_files;
+use crate::{get_downloads_dir, State};
+use crate::handlers::{download_file_by_id, HandlerResult, log_request, mode_from_mode_name, MyDialogue};
+use crate::keyboards::*;
+use crate::ryemage_settings::UserSettings;
 
 pub async fn handle_base_action(
     bot: Bot,
@@ -174,7 +172,7 @@ pub async fn handle_process_mode(
             let palette_file_name = get_downloads_dir().join(palette_file_id);
             let process_file_name = get_downloads_dir().join(process_file_id);
 
-            let mode = match PaletteMapperMode::from_mode_name(mode) {
+            let mode = match mode_from_mode_name(mode) {
                 None => {
                     bot.send_message(q.from.id, "Unknown mode, contact the developer")
                         .await?;
