@@ -5,7 +5,8 @@ use std::{cmp, io};
 
 use image::imageops::FilterType;
 use image::io::Reader as ImageReader;
-use image::DynamicImage;
+use image::{DynamicImage, EncodableLayout};
+use log::debug;
 
 const IMAGE_SIZE_LIMIT: (u32, u32) = (1280, 1280);
 // const IMAGE_SIZE_LIMIT: (u32, u32) = (512, 512);
@@ -35,15 +36,33 @@ pub fn downscale_to_size(
     None
 }
 
+#[allow(unused)]
 pub fn load_image_from_file<P>(path: P) -> io::Result<DynamicImage>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     let fd = File::open(path)?;
     let file_size = fd.metadata().map(|m| m.len()).ok();
-    println!("file size is {:?}", file_size);
+    debug!("file size is {:?}", file_size);
 
     load_image_from_unknown_reader(BufReader::new(fd), file_size)
+}
+
+#[allow(unused)]
+pub fn mmap_image_from_file<P>(path: P) -> io::Result<DynamicImage>
+    where
+        P: AsRef<Path>,
+{
+    use memmap2::Mmap;
+
+    let fd = File::open(path)?;
+    let file_size = fd.metadata().map(|m| m.len()).ok();
+    debug!("file size is {:?}", file_size);
+
+    let file_mmap = unsafe { Mmap::map(&fd)? };
+
+
+    load_image_from_unknown_reader(BufReader::new(file_mmap.as_bytes()), file_size)
 }
 
 pub fn load_image_from_unknown_reader(
@@ -75,9 +94,9 @@ pub fn load_image_from_unknown_reader(
 
 #[allow(unused)]
 pub fn save_image<P, B>(path: P, processed_image: B) -> io::Result<()>
-where
-    P: AsRef<Path>,
-    B: AsRef<[u8]>,
+    where
+        P: AsRef<Path>,
+        B: AsRef<[u8]>,
 {
     let mut save_file = File::create(path)?;
     save_file.write_all(processed_image.as_ref())

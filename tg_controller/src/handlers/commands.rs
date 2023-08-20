@@ -1,7 +1,8 @@
 use teloxide::prelude::*;
+use teloxide::types::ParseMode;
 
 use crate::handlers::{HandlerResult, log_request, MyDialogue};
-use crate::keyboards::base_keyboard;
+use crate::keyboards::{base_keyboard, BOT_HELP_TEXT_MD};
 use crate::ryemage_settings::UserSettings;
 use crate::State;
 
@@ -25,7 +26,9 @@ pub async fn start(bot: Bot, dialogue: MyDialogue, msg: Message) -> HandlerResul
 pub async fn help(bot: Bot, msg: Message) -> HandlerResult {
     log_request("got help command", &msg);
 
-    bot.send_message(msg.chat.id, "How can I help you?").await?;
+    let mut message = bot.send_message(msg.chat.id, BOT_HELP_TEXT_MD);
+    message.parse_mode = Some(ParseMode::MarkdownV2);
+    message.await?;
 
     Ok(())
 }

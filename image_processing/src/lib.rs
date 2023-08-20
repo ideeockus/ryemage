@@ -8,7 +8,7 @@ use log::{debug, info};
 use crate::errors::{ImageProcessingError, ImageProcessingResult};
 use crate::palette_extraction::{create_lab_palette_mapper, create_rgb_palette_mapper, create_swap_palette_mapper};
 use crate::palette_operations::PaletteOperations;
-use crate::utils::load_image_from_file;
+use crate::utils::{load_image_from_file, mmap_image_from_file};
 
 mod palette_extraction;
 mod errors;
@@ -48,24 +48,31 @@ pub fn perform_action_on_files(
     let start = SystemTime::now();
     debug!("start perform actions on files");
 
-    let palette_image = load_image_from_file(palette_image)?;
-    let img_to_process = load_image_from_file(img_to_process)?;
+    let palette_image = mmap_image_from_file(palette_image)?;
+    // let palette_image = load_image_from_file(palette_image)?;
+    debug!("palette image loaded");
+    let img_to_process = mmap_image_from_file(img_to_process)?;
+    // let img_to_process = load_image_from_file(img_to_process)?;
+    debug!("image to process loaded");
 
     let processed_image = match mode {
         PaletteMapperMode::SimpleLab => {
             let color_mapper = create_lab_palette_mapper(palette_image, DEFAULT_QUANTITY);
+            debug!("palette extracted");
             let mut img_to_process = img_to_process.to_rgb8();
             img_to_process.apply_palette_to_image(color_mapper);
             img_to_process
         }
         PaletteMapperMode::SimpleRgb => {
             let color_mapper = create_rgb_palette_mapper(palette_image, DEFAULT_QUANTITY);
+            debug!("palette extracted");
             let mut img_to_process = img_to_process.to_rgb8();
             img_to_process.apply_palette_to_image(color_mapper);
             img_to_process
         }
         PaletteMapperMode::RgbDither => {
             let color_mapper = create_rgb_palette_mapper(palette_image, DEFAULT_QUANTITY);
+            debug!("palette extracted");
             let mut img_to_process = img_to_process.to_rgb8();
             img_to_process.dither_with_palette(color_mapper);
             img_to_process
@@ -74,6 +81,7 @@ pub fn perform_action_on_files(
         PaletteMapperMode::RgbSwap => {
             let color_mapper =
                 create_swap_palette_mapper(&img_to_process, &palette_image, DEFAULT_QUANTITY);
+            debug!("palette extracted");
             let mut img_to_process = img_to_process.to_rgb8();
             img_to_process.apply_palette_to_image(color_mapper);
             img_to_process
@@ -84,6 +92,7 @@ pub fn perform_action_on_files(
             return Err(ImageProcessingError::UnsupportedMode);
         }
     };
+    debug!("image processing finished");
 
     let result = Vec::with_capacity(processed_image.len());
     let mut result = Cursor::new(result);

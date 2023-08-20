@@ -1,12 +1,18 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use log::{debug, error};
 use teloxide::prelude::*;
 use teloxide::types::{ChatAction, InputFile, ParseMode};
 
 use image_processing::perform_action_on_files;
+
 use crate::{get_downloads_dir, State};
 use crate::handlers::{download_file_by_id, HandlerResult, log_request, mode_from_mode_name, MyDialogue};
 use crate::keyboards::*;
 use crate::ryemage_settings::UserSettings;
+
+static GLOBAL_USER_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
 
 pub async fn handle_base_action(
     bot: Bot,
@@ -109,7 +115,7 @@ pub async fn handle_palette_image(
                 msg.chat.id,
                 "My current state - waiting picture to palette extraction",
             )
-            .await?;
+                .await?;
         }
     }
 
@@ -144,7 +150,7 @@ pub async fn handle_process_mode(
                     q.from.id,
                     "Hmmm. Did you press button with sign \"Build Palette\"?",
                 )
-                .await?;
+                    .await?;
             }
 
             if let Some(msg) = q.message {
@@ -161,18 +167,18 @@ pub async fn handle_process_mode(
                 q.from.id,
                 format!("Mode {mode} in development stage. Try a bit later.."),
             )
-            .await?;
+                .await?;
             bot.send_message(
                 q.from.id,
                 format!("I see you have uploaded file {process_file_id} and have palette"),
             )
-            .await?;
+                .await?;
         }
-        Some(mode) => {
+        Some(mode_str) => {
             let palette_file_name = get_downloads_dir().join(palette_file_id);
             let process_file_name = get_downloads_dir().join(process_file_id);
 
-            let mode = match mode_from_mode_name(mode) {
+            let mode = match mode_from_mode_name(mode_str) {
                 None => {
                     bot.send_message(q.from.id, "Unknown mode, contact the developer")
                         .await?;
@@ -181,11 +187,15 @@ pub async fn handle_process_mode(
                 Some(mode) => mode,
             };
 
+            // todo run in thread pool
             let processed = perform_action_on_files(&palette_file_name, &process_file_name, mode);
+            // rayon::spawn();
 
             match processed {
                 Ok(v) => {
-                    bot.send_photo(q.from.id, InputFile::memory(v)).await?;
+                    let mut message = bot.send_photo(q.from.id, InputFile::memory(v));
+                    message.caption = Some(mode_str.to_string());
+                    message.await?;
                 }
                 Err(err) => {
                     error!("Image processing error {}", err);
@@ -194,7 +204,7 @@ pub async fn handle_process_mode(
                         q.from.id,
                         "Error occurred during image processing. Please contact the developer",
                     )
-                    .await?;
+                        .await?;
                 }
             }
         }
@@ -229,11 +239,14 @@ pub async fn view_settings(
                 .await?;
         }
         Some(USER_GUIDE) => {
-            bot.send_message(
-                msg.chat.id,
-                "There is nothing here. Wait for the rye release.",
-            )
-            .await?;
+            let mut message = bot.send_message(msg.chat.id, BOT_HELP_TEXT_MD);
+            message.parse_mode = Some(ParseMode::MarkdownV2);
+            message.await?;
+            // bot.send_message(
+            //     msg.chat.id,
+            //     "There is nothing here. Wait for the rye release.",
+            // )
+            //     .await?;
         }
         Some(THIRD_BUTTON) => {
             bot.send_message(msg.chat.id, "42 - 3 = 20").await?;
@@ -243,7 +256,7 @@ pub async fn view_settings(
                 msg.chat.id,
                 "It would be better if you pressed the third button than what you are doing now",
             )
-            .await?;
+                .await?;
         }
     }
 

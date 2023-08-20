@@ -43,6 +43,9 @@ pub enum State {
 pub async fn run_polling() {
     info!("Run telegram polling...");
 
+    // configure rayon global thread pool
+    rayon::ThreadPoolBuilder::new().num_threads(2).build_global().unwrap();
+
     let bot = Bot::from_env();
 
     let update_handler = schema();

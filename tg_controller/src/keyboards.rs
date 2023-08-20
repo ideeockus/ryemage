@@ -81,7 +81,7 @@ pub fn setting_keyboard() -> ReplyMarkup {
         KeyboardButton::new(BACK),
         KeyboardButton::new(USER_GUIDE),
         KeyboardButton::new(BOT_ABOUT),
-        KeyboardButton::new(THIRD_BUTTON),
+        // KeyboardButton::new(THIRD_BUTTON),
     ]];
 
     let mut keyboard = KeyboardMarkup::new(buttons);
@@ -98,19 +98,37 @@ pub fn back_keyboard() -> ReplyMarkup {
 }
 
 pub const BOT_ABOUT_TEXT_MD: &str = r#"
+*Привет\!* Тут можно заменять _цвета_ из одной картинки на _цвета_ из другой картинки\.
+Всего __4 режима__, может быть позже добавлю еще пару\.
+
+Если нужна _инструкция_, можешь нажать /help
+
+Спасибо за проявленный интерес\.
+
+
 Этот бот разработан: @idksdump
+"#;
 
-Ответсвенный за тексты и брендинг: *ChatGPT*
+pub const BOT_HELP_TEXT_MD: &str = r#"
+Quick Guide:
 
-Дизайнер иконки: Free Logo Maker
+1\. Press *"Build Palette"* and send me a picture\.
+It will be used as a source of colors\.
 
-Вдохновитель: _Рыжее_ не\-я в мужском бессознательном
+2\. Now you can send me a picture to process\.
+I have 4 palette rebase modes:
 
-На превью картинка из аниме __"Волчица и прянности"__
+*_Luminous Transformation_* \- keep "lights" and change only colors
 
-**Рожь** \- потомучто я писал этот код в деревне
+*_Ruthless Chromatic_* \- replaces each pixel with most similar one from the palette
 
-Этот текст я пока не продумал
+*_Mosaic Adventure_* \- use dithering when convert colors
 
-Lorem ipsum dolor amet
+*_Radical Replacement_* \- just swap colors by lightness
+
+ those mode are not currently supported:
+*_Neural Revolution_* \- convert colors using neural network
+*_Pixel Reflection_* \- ???
+
+*Subscribe* to me to follow my other projects\! @idksdump
 "#;
