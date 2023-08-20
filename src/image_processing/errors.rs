@@ -1,5 +1,6 @@
 use std::{fmt, io};
-use std::fmt::{Debug};
+use std::fmt::Debug;
+
 use image::ImageError;
 
 pub type ImageProcessingResult = Result<Vec<u8>, ImageProcessingError>;

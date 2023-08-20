@@ -12,22 +12,6 @@ use rstar::{AABB, Envelope, Point, PointDistance, RTree, RTreeObject};
 
 use crate::image_processing::color_mappers::IndexedColor;
 
-impl RTreeObject for IndexedColor<LinSrgb> {
-    type Envelope = AABB<[f32; 3]>;
-
-    fn envelope(&self) -> Self::Envelope {
-        AABB::from_point([self.color.red, self.color.green, self.color.blue])
-    }
-}
-
-impl PointDistance for IndexedColor<LinSrgb> {
-    fn distance_2(&self, point: &<Self::Envelope as Envelope>::Point) -> <<Self::Envelope as Envelope>::Point as Point>::Scalar {
-        (self.color.red - point[0]).powi(2) +
-            (self.color.green - point[1]).powi(2) +
-            (self.color.blue - point[2]).powi(2)
-    }
-}
-
 pub struct RgbPaletteMapper {
     colors_tree: RTree<IndexedColor<LinSrgb>>,
 }

@@ -2,14 +2,14 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::time::SystemTime;
+
 use image::{ImageFormat, open, Rgb, RgbImage};
 use image::imageops::ColorMap;
+
 use crate::image_processing::color_mappers::{LabPaletteMapper, RgbPaletteMapper};
-
-use crate::image_processing::PaletteOperations;
 use crate::image_processing::palette_extraction::{create_lab_palette_mapper, create_rgb_palette_mapper, create_swap_palette_mapper};
+use crate::image_processing::PaletteOperations;
 use crate::image_processing::utils::{load_image_from_file, load_image_from_unknown_reader, save_image};
-
 
 const PIC_1: &str = "res/pic1.png";
 const PIC_2: &str = "res/pic2.jpg";

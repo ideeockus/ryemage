@@ -6,8 +6,8 @@ use teloxide::utils::command::BotCommands;
 pub enum Command {
     #[command(description = "display this text.")]
     Help,
-    #[command(description = "start the purchase procedure.")]
+    #[command(description = "start the bot")]
     Start,
-    #[command(description = "cancel the purchase procedure.")]
+    #[command(description = "cancel current operation")]
     Cancel,
 }

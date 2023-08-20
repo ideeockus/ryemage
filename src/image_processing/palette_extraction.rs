@@ -1,5 +1,5 @@
+use std::{cmp, io, result};
 use std::fs::File;
-use std::{io, result};
 use std::io::{BufReader, Cursor, Read};
 use std::path::Path;
 
@@ -11,8 +11,8 @@ use kmeans_colors::{Calculate, get_kmeans, Kmeans, MapColor, Sort};
 use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb};
 use palette::cast::{from_component_slice, into_component_slice};
 use palette::luma::channels::La;
-use crate::image_processing::color_mappers::{LabPaletteMapper, RgbPaletteMapper, SwapPaletteMapper};
 
+use crate::image_processing::color_mappers::{LabPaletteMapper, RgbPaletteMapper, SwapPaletteMapper};
 use crate::image_processing::utils::{downscale_to_size, load_image_from_unknown_reader};
 
 const RUN_AMOUNT: u16 = 3;
@@ -125,11 +125,11 @@ pub fn create_swap_palette_mapper(img_to_process: &DynamicImage, palette_img: &D
         Some(scaled) => scaled.to_rgb8(),
     };
 
-    let sorted_palette_1 = get_image_lin_rgb_palette(&palette_img, quantity, true);
-    let sorted_palette_2 = get_image_lin_rgb_palette(&img_to_process, quantity, true);
+    let mut sorted_palette_1 = get_image_lin_rgb_palette(&palette_img, quantity, true);
+    let mut sorted_palette_2 = get_image_lin_rgb_palette(&img_to_process, quantity, true);
 
-    // TODO fix case if one of pictures has small color set
-    Box::new(SwapPaletteMapper::new(sorted_palette_1, sorted_palette_2).unwrap())
+    // Box::new(SwapPaletteMapper::new(sorted_palette_1, sorted_palette_2).unwrap())
+    Box::new(SwapPaletteMapper::new(sorted_palette_2, sorted_palette_1).unwrap())
 }
 
 

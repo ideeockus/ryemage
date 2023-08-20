@@ -1,17 +1,20 @@
-mod commands;
-mod dispatch;
-mod ryemage_settings;
-mod handlers;
-mod keyboards;
-
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
+use log::info;
+
+use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::prelude::*;
 use teloxide::update_listeners::Polling;
+
 use crate::tg_controller::dispatch::schema;
-use teloxide::dispatching::dialogue::InMemStorage;
 use crate::tg_controller::ryemage_settings::UserSettings;
+
+mod commands;
+mod dispatch;
+mod ryemage_settings;
+mod keyboards;
+mod handlers;
 
 const DOWNLOADED_FILES_PATH: &str = "tg_downloads";
 
@@ -25,7 +28,7 @@ fn get_downloads_dir() -> PathBuf {
 }
 
 pub async fn run_bot() {
-    log::info!("Starting throw dice bot...");
+    info!("Starting throw dice bot...");
 
     let bot = Bot::from_env();
 
@@ -47,9 +50,6 @@ pub enum State {
     WaitPalettePicture {
         settings: UserSettings,
     },
-    // WaitProcessMode {
-    //     settings: UserSettings,
-    // },
     ViewSettings {
         settings: UserSettings,
     },
@@ -57,17 +57,9 @@ pub enum State {
 
 
 pub async fn run_polling() {
-    // log::info!("Preparing to run...");
-    // prepare_fs();
-
-    log::info!("Run telegram polling...");
+    info!("Run telegram polling...");
 
     let bot = Bot::from_env();
-
-    // let polling = Polling::builder(bot)
-    //     .timeout(Duration::from_secs(10))
-    //     .drop_pending_updates()
-    //     .build();
 
     let update_handler = schema();
     let mut dispatcher = Dispatcher::builder(bot, update_handler)
@@ -77,11 +69,5 @@ pub async fn run_polling() {
 
     dispatcher.dispatch().await;
 
-    log::info!("Dispatcher started");
-
-    // teloxide::repl(bot, |bot: Bot, msg: Message| async move {
-    //     bot.send_dice(msg.chat.id).await?;
-    //     Ok(())
-    // })
-    //     .await;
+    info!("Dispatcher started");
 }

@@ -8,24 +8,9 @@ use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb};
 use palette::cast::{ArraysFrom, from_array, from_component_slice};
 use palette::color_difference::{EuclideanDistance, HyAb};
 use palette::rgb::Rgb;
-use rstar::{AABB, Envelope, Point, PointDistance, RTree, RTreeObject};
+use rstar::RTree;
 
 use crate::image_processing::color_mappers::IndexedColor;
-
-
-impl RTreeObject for IndexedColor<Lab> {
-    type Envelope = AABB<[f32; 2]>;
-
-    fn envelope(&self) -> Self::Envelope {
-        AABB::from_point([self.color.a, self.color.b])
-    }
-}
-
-impl PointDistance for IndexedColor<Lab> {
-    fn distance_2(&self, point: &<Self::Envelope as Envelope>::Point) -> <<Self::Envelope as Envelope>::Point as Point>::Scalar {
-        (self.color.a - point[0]).powi(2) + (self.color.b - point[1]).powi(2)
-    }
-}
 
 pub struct LabPaletteMapper {
     colors_tree: RTree<IndexedColor<Lab>>,

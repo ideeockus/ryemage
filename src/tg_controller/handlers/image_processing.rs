@@ -1,90 +1,20 @@
 use std::ops::Deref;
 use std::sync::{Arc, Mutex};
-use log::error;
+
+use log::{debug, error};
 use teloxide::dispatching::{dialogue, UpdateHandler};
 use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::net::Download;
 use teloxide::payloads::SendMessage;
 use teloxide::prelude::*;
-use teloxide::types::{InputFile, InputMedia, ParseMode};
-use crate::image_processing::{PaletteMapperMode, perform_action_on_files};
+use teloxide::types::{ChatAction, InputFile, InputMedia, ParseMode};
 
+use crate::image_processing::{PaletteMapperMode, perform_action_on_files};
+use crate::tg_controller::{get_downloads_dir, State};
 use crate::tg_controller::commands::Command;
+use crate::tg_controller::handlers::{download_file_by_id, HandlerResult, log_request, MyDialogue};
 use crate::tg_controller::keyboards::*;
 use crate::tg_controller::ryemage_settings::UserSettings;
-use crate::tg_controller::{get_downloads_dir, State};
-
-type MyDialogue = Dialogue<State, InMemStorage<State>>;
-type HandlerResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
-
-
-async fn download_file_by_id(bot: &Bot, file_id: &str) -> HandlerResult {
-    let tg_file = bot.get_file(file_id).await?;
-
-    let mut async_fd = tokio::fs::File::create(get_downloads_dir().join(file_id)).await?;
-    bot.download_file(&tg_file.path, &mut async_fd).await?;
-
-    Ok(())
-}
-
-
-fn log_request(log_text: &str, msg: &Message) {
-    log::debug!("{}", log_text);
-    match msg.from() {
-        None => {
-            log::debug!("message from unknown user");
-        }
-        Some(user) => {
-            log::debug!(
-                "message from user {:?} [{}] - {}. special: {}|{}",
-                user.mention(),
-                user.id,
-                user.full_name(),
-                user.is_anonymous(),
-                user.is_telegram(),
-            );
-        }
-    }
-}
-
-pub async fn log_request_handler(msg: Message) -> HandlerResult {
-    match msg.from() {
-        None => {
-            log::debug!("message from unknown user");
-        }
-        Some(user) => {
-            log::debug!(
-                "message from user {:?} [{}] - {}. special: {}|{}",
-                user.mention(),
-                user.id,
-                user.full_name(),
-                user.is_anonymous(),
-                user.is_telegram(),
-            );
-        }
-    }
-
-    Ok(())
-}
-
-pub async fn start(bot: Bot, dialogue: MyDialogue, msg: Message) -> HandlerResult {
-    log_request("got start command", &msg);
-
-    dialogue.update(State::WaitProcessPicture { settings: UserSettings::default() }).await?;
-    let mut message = bot.send_message(msg.chat.id, "Choose action please");
-    message.reply_markup = Some(base_keyboard());
-    message.await?;
-
-    Ok(())
-}
-
-pub async fn help(bot: Bot, msg: Message) -> HandlerResult {
-    log_request("got help command", &msg);
-
-    bot.send_message(msg.chat.id, "How can I help you?").await?;
-
-    Ok(())
-}
 
 pub async fn handle_base_action(
     bot: Bot,
@@ -148,12 +78,10 @@ pub async fn handle_palette_image(
         let file_id = photo_size.file.id.clone();
         download_file_by_id(&bot, &file_id).await?;
 
-        // TODO create PaletteMapper
         dialogue.update(State::WaitProcessPicture {
             settings: UserSettings {
                 process_file_id: settings.process_file_id,
                 palette_file_id: Some(file_id),
-                // TODO fix unwrap etc
             },
         }).await?;
 
@@ -179,24 +107,19 @@ pub async fn handle_palette_image(
     Ok(())
 }
 
-// pub async fn handle_process_image(bot: Bot, settings: UserSettings, msg: Message) -> HandlerResult {
-//     log::debug!("got process image");
-//
-//     Ok(())
-// }
-
 pub async fn handle_process_mode(
     bot: Bot,
     settings: UserSettings,
     q: CallbackQuery,
 ) -> HandlerResult {
-    log::debug!("got process image");
+    debug!("got process image");
+    bot.answer_callback_query(q.id).await?;
+    bot.send_chat_action(q.from.id, ChatAction::UploadPhoto).await?;
 
     let (process_file_id, palette_file_id) = match settings {
         UserSettings {
             process_file_id: Some(process_file_id),
             palette_file_id: Some(palette_file_id),
-            // palette_mapper: Some(palette_mapper),
         } => {
             (process_file_id, palette_file_id)
         }
@@ -214,16 +137,17 @@ pub async fn handle_process_mode(
             if let Some(msg) = q.message {
                 bot.delete_message(q.from.id, msg.id).await?;
             }
-            bot.answer_callback_query(q.id).await?;
+
             return Ok(());
         }
     };
 
     match q.data.as_deref() {
-        Some(PIXEL_DIFF_MODE) | Some(NEU_QUANT_MODE) | Some(RGB_DITHER_MODE) => {
+        Some(mode @ PIXEL_DIFF_MODE) |
+        Some(mode @ NEU_QUANT_MODE) => {
             bot.send_message(
                 q.from.id,
-                format!("Mode {t} in development stage. Try a bit later.."),
+                format!("Mode {mode} in development stage. Try a bit later.."),
             ).await?;
             bot.send_message(
                 q.from.id,
@@ -233,16 +157,22 @@ pub async fn handle_process_mode(
         Some(mode) => {
             let palette_file_name = get_downloads_dir().join(palette_file_id);
             let process_file_name = get_downloads_dir().join(process_file_id);
-            // TODO fix this, use normal API
-            // let mut img = load_image_from_file(&filename).unwrap().to_rgb8();
 
-            // let palette_mapper = palette_mapper.as_ref().lock().unwrap();
-            // img.apply_palette_to_image(palette_mapper.deref());
-            // img.save(filename.join("_processed")).unwrap();
+            let mode = match PaletteMapperMode::from_mode_name(mode) {
+                None => {
+                    bot.send_message(
+                        q.from.id,
+                        "Unknown mode, contact the developer",
+                    ).await?;
+                    return Ok(());
+                }
+                Some(mode) => mode,
+            };
+
             let processed = perform_action_on_files(
                 &palette_file_name,
                 &process_file_name,
-                mode.into(),
+                mode,
             );
 
             match processed {
@@ -266,21 +196,6 @@ pub async fn handle_process_mode(
             bot.send_message(q.from.id, "Something goes wrong").await?;
         }
     }
-
-    bot.answer_callback_query(q.id).await?;
-
-    Ok(())
-}
-
-pub async fn invalid_state_callback(
-    bot: Bot,
-    q: CallbackQuery,
-) -> HandlerResult {
-    log::debug!("got invalid callback");
-    if let Some(msg) = q.message {
-        bot.delete_message(q.from.id, msg.id).await?;
-    }
-    bot.answer_callback_query(q.id).await?;
 
     Ok(())
 }
@@ -313,10 +228,3 @@ pub async fn view_settings(bot: Bot, dialogue: MyDialogue, settings: UserSetting
     Ok(())
 }
 
-pub async fn invalid_state(bot: Bot, msg: Message) -> HandlerResult {
-    log_request("got message, but state invalid", &msg);
-
-    bot.send_message(msg.chat.id, "If you got stacked, please read User Guide. Just press /help").await?;
-
-    Ok(())
-}

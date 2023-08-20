@@ -13,6 +13,7 @@ use palette::{FromColor, IntoColor, Lab, Srgb};
 use palette::cast::{from_component_slice, into_component_slice};
 
 const IMAGE_SIZE_LIMIT: (u32, u32) = (1280, 1280);
+// const IMAGE_SIZE_LIMIT: (u32, u32) = (512, 512);
 
 
 pub fn downscale_to_size(img: &DynamicImage, target_size: (u32, u32), filter: FilterType) -> Option<DynamicImage> {
@@ -22,7 +23,7 @@ pub fn downscale_to_size(img: &DynamicImage, target_size: (u32, u32), filter: Fi
     let resize_factor: f32 = cmp::max_by(
         width / target_size.0 as f32,
         height / target_size.1 as f32,
-        |a, b| a.partial_cmp(b).unwrap()
+        |a, b| a.partial_cmp(b).unwrap(),
     );
 
     if resize_factor > 1.0 {
@@ -56,7 +57,7 @@ pub fn load_image_from_unknown_reader(mut reader: impl BufRead, size: Option<u64
             return Err(io::Error::new(
                 io::ErrorKind::OutOfMemory,
                 "Image size is too much",
-            ))
+            ));
         }
         Some(size) => {
             Vec::with_capacity(size as usize)

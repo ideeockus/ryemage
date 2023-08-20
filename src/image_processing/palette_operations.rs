@@ -14,7 +14,6 @@ use log::{debug, info};
 use palette::{FromColor, IntoColor, Lab, Srgb};
 use palette::cast::{from_component_slice, into_component_slice};
 
-
 pub trait PaletteOperations {
     fn apply_palette_to_image(&mut self, palette: Box<dyn ColorMap<Color=Rgb<u8>>>) -> &mut Self;
     fn dither_with_palette(&mut self, palette: Box<dyn ColorMap<Color=Rgb<u8>>>) -> &mut Self;

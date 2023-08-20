@@ -18,18 +18,6 @@ pub const NEU_QUANT_MODE: &str = "Neural Revolution"; // NeuQuantMapper
 pub const RGB_SWAP_MODE: &str = "Radical Replacement"; // SwapMapper
 pub const PIXEL_DIFF_MODE: &str = "Pixel Reflection"; // RgbDiffMapper
 
-// todo: move this impl to another place
-impl TryFrom<&str> for PaletteMapperMode {
-    type Error = ();
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            SIMPLE_LAB_MODE => PaletteMapperMode::SimpleLab,
-            // todo etc
-        }
-    }
-}
-
 // settings buttons
 pub const USER_GUIDE: &str = "User Guide";
 pub const BOT_ABOUT: &str = "What is it ??";
