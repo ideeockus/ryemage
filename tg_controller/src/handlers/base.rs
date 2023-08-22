@@ -24,8 +24,6 @@ pub async fn handle_base_action(
 ) -> HandlerResult {
     log_request("got base action", &msg);
 
-    let a = msg.document()
-
     let file_id = {
         if msg.document().is_some() {
             let doc_file_id = msg.document().unwrap().file.id.clone();
@@ -129,7 +127,7 @@ pub async fn handle_palette_image(
                 msg.chat.id,
                 "My current state - waiting picture to palette extraction",
             )
-            .await?;
+                .await?;
         }
     }
 
@@ -166,7 +164,7 @@ pub async fn handle_process_mode(
                     q.from.id,
                     "Hmmm. Did you press button with sign \"Build Palette\"?",
                 )
-                .await?;
+                    .await?;
             }
 
             if let Some(msg) = q.message {
@@ -183,12 +181,12 @@ pub async fn handle_process_mode(
                 q.from.id,
                 format!("Mode {mode} in development stage. Try a bit later.."),
             )
-            .await?;
+                .await?;
             bot.send_message(
                 q.from.id,
                 format!("I see you have uploaded file {process_file_id} and have palette"),
             )
-            .await?;
+                .await?;
         }
         Some(mode_str) => {
             let palette_file_name = get_downloads_dir().join(palette_file_id);
@@ -219,21 +217,24 @@ pub async fn handle_process_mode(
 
                 result
             })
-            .await;
+                .await;
             // rayon::spawn();
 
             match processed {
                 Ok(v) => {
-                    let mut message = match settings.quality {
+                    match settings.quality {
                         ImageQuality::Photo => {
-                            bot.send_photo(q.from.id, InputFile::memory(v))
+                            let mut message = bot.send_photo(q.from.id, InputFile::memory(v));
+                            message.caption = Some(mode_str.to_string());
+                            message.await?;
                         }
+
                         ImageQuality::Document => {
-                            bot.send_document(q.from.id, InputFile::memory(v))
+                            let mut message = bot.send_document(q.from.id, InputFile::memory(v));
+                            message.caption = Some(mode_str.to_string());
+                            message.await?;
                         }
                     };
-                    message.caption = Some(mode_str.to_string());
-                    message.await?;
                 }
                 Err(err) => {
                     error!("Image processing error {}", err);
@@ -242,14 +243,14 @@ pub async fn handle_process_mode(
                         q.from.id,
                         "Error occurred during image processing. Please contact the developer",
                     )
-                    .await?;
+                        .await?;
                 }
             }
         }
         _ => {
             bot.send_message(q.from.id, "Something goes wrong").await?;
         }
-    }
+    };
 
     Ok(())
 }
@@ -289,7 +290,7 @@ pub async fn view_settings(
                 msg.chat.id,
                 "It would be better if you pressed the third button than what you are doing now",
             )
-            .await?;
+                .await?;
         }
     }
 

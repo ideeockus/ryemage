@@ -2,6 +2,7 @@
 
 const DEFAULT_QUANTITY: usize = 64;
 
+#[derive(Clone)]
 pub enum ImageQuality {
     Photo,
     Document,
