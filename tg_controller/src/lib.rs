@@ -40,11 +40,16 @@ pub enum State {
     },
 }
 
+const RAYON_THREAD_POOL_LIMIT: usize = 4;
+
 pub async fn run_polling() {
     info!("Run telegram polling...");
 
     // configure rayon global thread pool
-    rayon::ThreadPoolBuilder::new().num_threads(2).build_global().unwrap();
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(RAYON_THREAD_POOL_LIMIT)
+        .build_global()
+        .unwrap();
 
     let bot = Bot::from_env();
 

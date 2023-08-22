@@ -1,13 +1,14 @@
-use log::debug;
-use teloxide::Bot;
 use crate::handlers::*;
 use crate::ryemage_settings::UserSettings;
 use crate::State;
+use log::debug;
+use teloxide::Bot;
 
 pub async fn handle_start_state(bot: Bot, dialogue: MyDialogue, msg: Message) -> HandlerResult {
     log_request("got contact (start state) message", &msg);
 
-    dialogue.update(State::WaitProcessPicture {
+    dialogue
+        .update(State::WaitProcessPicture {
             settings: UserSettings::default(),
         })
         .await?;
@@ -42,7 +43,7 @@ pub async fn invalid_state(bot: Bot, msg: Message) -> HandlerResult {
         msg.chat.id,
         "If you got stacked, please read User Guide. Just press /help",
     )
-        .await?;
+    .await?;
 
     Ok(())
 }

@@ -12,7 +12,7 @@ mod rgb_color_palette;
 mod swap_color_mapper;
 
 #[allow(unused)]
-pub type RgbColorMap = dyn ColorMap<Color = Rgb<u8>> + Send;
+pub type RgbColorMapper = Box<dyn ColorMap<Color = Rgb<u8>>>;
 
 /// used to storage color with its index
 #[derive(Debug)]

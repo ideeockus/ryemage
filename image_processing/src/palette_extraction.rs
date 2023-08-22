@@ -1,8 +1,8 @@
-use image::{DynamicImage, Rgb, RgbImage};
 use image::imageops::{ColorMap, FilterType};
-use kmeans_colors::{Calculate, get_kmeans, Kmeans, Sort};
-use palette::{IntoColor, Lab, LinSrgb, Srgb};
+use image::{DynamicImage, Rgb, RgbImage};
+use kmeans_colors::{get_kmeans, Calculate, Kmeans, Sort};
 use palette::cast::from_component_slice;
+use palette::{IntoColor, Lab, LinSrgb, Srgb};
 
 use crate::color_mappers::{LabPaletteMapper, RgbPaletteMapper, SwapPaletteMapper};
 use crate::utils::downscale_to_size;

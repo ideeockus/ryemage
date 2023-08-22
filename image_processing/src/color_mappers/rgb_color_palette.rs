@@ -1,8 +1,8 @@
+use crate::color_mappers::IndexedColor;
 use image::imageops::ColorMap;
 use palette::cast::from_array;
 use palette::{IntoColor, LinSrgb, Srgb};
 use rstar::RTree;
-use crate::color_mappers::IndexedColor;
 
 pub struct RgbPaletteMapper {
     colors_tree: RTree<IndexedColor<LinSrgb>>,

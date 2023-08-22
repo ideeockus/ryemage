@@ -1,7 +1,7 @@
 use image::imageops::ColorMap;
 use log::debug;
-use palette::{IntoColor, LinSrgb, Srgb};
 use palette::cast::from_array;
+use palette::{IntoColor, LinSrgb, Srgb};
 use rstar::RTree;
 
 use crate::color_mappers::IndexedColor;

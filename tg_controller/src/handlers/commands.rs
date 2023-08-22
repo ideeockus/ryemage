@@ -1,7 +1,7 @@
 use teloxide::prelude::*;
 use teloxide::types::ParseMode;
 
-use crate::handlers::{HandlerResult, log_request, MyDialogue};
+use crate::handlers::{log_request, HandlerResult, MyDialogue};
 use crate::keyboards::{base_keyboard, BOT_HELP_TEXT_MD};
 use crate::ryemage_settings::UserSettings;
 use crate::State;

@@ -2,19 +2,19 @@ use teloxide::dispatching::dialogue::InMemStorage;
 use teloxide::net::Download;
 use teloxide::prelude::*;
 
+pub use base::*;
 pub use commands::*;
 pub use common::*;
 pub use middleware::*;
-pub use base::*;
 
-use crate::{get_downloads_dir, State};
 use crate::keyboards::*;
+use crate::{get_downloads_dir, State};
 use image_processing::PaletteMapperMode;
 
+mod base;
 mod commands;
 mod common;
 mod middleware;
-mod base;
 
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
 type HandlerResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;

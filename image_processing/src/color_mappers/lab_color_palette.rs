@@ -1,6 +1,6 @@
 use image::imageops::ColorMap;
-use palette::{FromColor, IntoColor, Lab, Srgb};
 use palette::cast::from_array;
+use palette::{FromColor, IntoColor, Lab, Srgb};
 use rstar::RTree;
 
 use crate::color_mappers::IndexedColor;

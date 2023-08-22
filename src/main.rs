@@ -1,5 +1,3 @@
-use std::io::Write;
-
 use env_logger;
 use env_logger::{Builder, TimestampPrecision};
 use log::LevelFilter;
