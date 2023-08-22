@@ -11,7 +11,7 @@ use crate::handlers::{
     download_file_by_id, log_request, mode_from_mode_name, HandlerResult, MyDialogue,
 };
 use crate::keyboards::*;
-use crate::ryemage_settings::UserSettings;
+use crate::ryemage_settings::{ImageQuality, UserSettings};
 use crate::{get_downloads_dir, State};
 
 static GLOBAL_USER_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -24,9 +24,21 @@ pub async fn handle_base_action(
 ) -> HandlerResult {
     log_request("got base action", &msg);
 
-    if let Some(photo_size) = msg.photo().map(|sizes| sizes.last()).flatten() {
-        // if got photo, update state and send inline keyboard to choose modes
-        let file_id = photo_size.file.id.clone();
+    let a = msg.document()
+
+    let file_id = {
+        if msg.document().is_some() {
+            let doc_file_id = msg.document().unwrap().file.id.clone();
+            Some(doc_file_id)
+        } else if msg.photo().is_some() {
+            let photo_file_id = msg.photo().map(|sizes| sizes.last()).flatten().unwrap().file.id.clone();
+            Some(photo_file_id)
+        } else {
+            None
+        }
+    };
+
+    if let Some(file_id) = file_id {
         download_file_by_id(&bot, &file_id).await?;
 
         dialogue
@@ -212,7 +224,14 @@ pub async fn handle_process_mode(
 
             match processed {
                 Ok(v) => {
-                    let mut message = bot.send_photo(q.from.id, InputFile::memory(v));
+                    let mut message = match settings.quality {
+                        ImageQuality::Photo => {
+                            bot.send_photo(q.from.id, InputFile::memory(v))
+                        }
+                        ImageQuality::Document => {
+                            bot.send_document(q.from.id, InputFile::memory(v))
+                        }
+                    };
                     message.caption = Some(mode_str.to_string());
                     message.await?;
                 }

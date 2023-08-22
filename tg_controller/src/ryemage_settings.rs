@@ -2,12 +2,18 @@
 
 const DEFAULT_QUANTITY: usize = 64;
 
+pub enum ImageQuality {
+    Photo,
+    Document,
+}
+
 #[derive(Clone)]
 pub struct UserSettings {
     pub process_file_id: Option<String>, // file_id of picture to process
     pub palette_file_id: Option<String>,
     // pub palette_mapper: Option<Arc<RgbColorMapper>>,
     pub color_amount: usize,
+    pub quality:ImageQuality,
 }
 
 impl UserSettings {
@@ -30,6 +36,7 @@ impl Default for UserSettings {
             process_file_id: None,
             palette_file_id: None,
             color_amount: DEFAULT_QUANTITY,
+            quality: ImageQuality::Photo,
         }
     }
 }
