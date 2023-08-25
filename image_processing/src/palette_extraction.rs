@@ -1,12 +1,10 @@
-use color_quant::NeuQuant;
-use image::{DynamicImage, EncodableLayout, Rgb, RgbImage};
+use image::{DynamicImage, Rgb, RgbImage};
 use image::imageops::{ColorMap, FilterType};
 use kmeans_colors::{Calculate, get_kmeans, Kmeans, Sort};
 use palette::{IntoColor, Lab, LinSrgb, Srgb};
 use palette::cast::from_component_slice;
-use palette::rgb::Rgba;
 
-use crate::color_mappers::{DiffMapper, LabPaletteMapper, RgbPaletteMapper, SwapPaletteMapper};
+use crate::color_mappers::{DiffMapper, LabPaletteMapper, NeuQuantWrapper, RgbPaletteMapper, SwapPaletteMapper};
 use crate::RgbColorMapper;
 use crate::utils::downscale_to_size;
 
@@ -129,19 +127,23 @@ pub fn create_swap_palette_mapper(
     Box::new(SwapPaletteMapper::new(sorted_palette_2, sorted_palette_1))
 }
 
-// pub fn create_neu_quant_palette_mapper(
-//     img: DynamicImage,
-//     quantity: usize,
-// ) -> Box<dyn ColorMap<Color = Rgba<u8>>> {
-//     const DEFAULT_SAMPLEFAC: i32 = 128;
-//     let img = downscale_to_size(&img, IMAGE_SIZE, FilterType::Nearest)
-//         .unwrap_or(img)
-//         .to_rgba8();
-//
-//     let neu_quant_mapper = NeuQuant::new(DEFAULT_SAMPLEFAC, quantity, img.as_bytes());
-//
-//     Box::new(neu_quant_mapper)
-// }
+pub fn create_neu_quant_palette_mapper(
+    img_to_process: &DynamicImage,
+    quantity: usize,
+) -> Box<dyn ColorMap<Color = image::Rgb<u8>>> {
+    let img_to_process = match downscale_to_size(img_to_process, IMAGE_SIZE, FilterType::Nearest) {
+        None => img_to_process.to_rgba8(),
+        Some(scaled) => scaled.to_rgba8(),
+    };
+
+    let neu_quant_mapper = NeuQuantWrapper::new(
+        img_to_process,
+        quantity
+    );
+
+
+    Box::new(neu_quant_mapper)
+}
 
 pub fn create_diff_palette_mapper(
     img_to_process: &DynamicImage,

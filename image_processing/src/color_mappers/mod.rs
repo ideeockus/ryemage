@@ -7,11 +7,13 @@ pub use lab_color_palette::LabPaletteMapper;
 pub use rgb_color_palette::RgbPaletteMapper;
 pub use swap_color_mapper::SwapPaletteMapper;
 pub use diff_mapper::DiffMapper;
+pub use neu_quant_wrapper::NeuQuantWrapper;
 
 mod lab_color_palette;
 mod rgb_color_palette;
 mod swap_color_mapper;
 mod diff_mapper;
+mod neu_quant_wrapper;
 
 #[allow(unused)]
 pub type RgbColorMapper = Box<dyn ColorMap<Color = Rgb<u8>>>;

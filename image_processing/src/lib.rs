@@ -6,7 +6,7 @@ use image::ImageFormat;
 use log::{debug, info};
 
 use crate::errors::{ImageProcessingError, ImageProcessingResult};
-use crate::palette_extraction::{create_diff_palette_mapper, create_lab_palette_mapper, create_rgb_palette_mapper, create_swap_palette_mapper};
+use crate::palette_extraction::{create_diff_palette_mapper, create_lab_palette_mapper, create_neu_quant_palette_mapper, create_rgb_palette_mapper, create_swap_palette_mapper};
 use crate::palette_operations::PaletteOperations;
 use crate::utils::mmap_image_from_file;
 pub use color_mappers::RgbColorMapper;
@@ -79,16 +79,16 @@ pub fn perform_action_on_files(
             img_to_process.dither_with_palette(color_mapper);
             img_to_process
         }
-        // PaletteMapperMode::NeuQuant => {
-        //     let color_mapper = create_neu_quant_palette_mapper(
-        //         img_to_process,
-        //         color_quantity,
-        //     );
-        //     debug!("palette extracted");
-        //     let mut img_to_process = img_to_process.to_rgb8();
-        //     img_to_process.apply_palette_to_image(color_mapper);
-        //     img_to_process
-        // }
+        PaletteMapperMode::NeuQuant => {
+            let color_mapper = create_neu_quant_palette_mapper(
+                &img_to_process,
+                color_quantity,
+            );
+            debug!("palette extracted");
+            let mut img_to_process = img_to_process.to_rgb8();
+            img_to_process.apply_palette_to_image(color_mapper);
+            img_to_process
+        }
         PaletteMapperMode::RgbSwap => {
             let color_mapper =
                 create_swap_palette_mapper(&img_to_process, &palette_image, color_quantity);
