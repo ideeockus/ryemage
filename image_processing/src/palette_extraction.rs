@@ -1,10 +1,13 @@
+use color_quant::NeuQuant;
+use image::{DynamicImage, EncodableLayout, Rgb, RgbImage};
 use image::imageops::{ColorMap, FilterType};
-use image::{DynamicImage, Rgb, RgbImage};
-use kmeans_colors::{get_kmeans, Calculate, Kmeans, Sort};
-use palette::cast::from_component_slice;
+use kmeans_colors::{Calculate, get_kmeans, Kmeans, Sort};
 use palette::{IntoColor, Lab, LinSrgb, Srgb};
+use palette::cast::from_component_slice;
+use palette::rgb::Rgba;
 
-use crate::color_mappers::{LabPaletteMapper, RgbPaletteMapper, SwapPaletteMapper};
+use crate::color_mappers::{DiffMapper, LabPaletteMapper, RgbPaletteMapper, SwapPaletteMapper};
+use crate::RgbColorMapper;
 use crate::utils::downscale_to_size;
 
 const RUN_AMOUNT: u16 = 3;
@@ -108,7 +111,7 @@ pub fn create_swap_palette_mapper(
     img_to_process: &DynamicImage,
     palette_img: &DynamicImage,
     quantity: usize,
-) -> Box<dyn ColorMap<Color = Rgb<u8>>> {
+) -> RgbColorMapper {
     let palette_img = match downscale_to_size(palette_img, IMAGE_SIZE, FilterType::Nearest) {
         None => palette_img.to_rgb8(),
         Some(scaled) => scaled.to_rgb8(),
@@ -123,5 +126,42 @@ pub fn create_swap_palette_mapper(
     let sorted_palette_2 = get_image_lin_rgb_palette(&img_to_process, quantity, true);
 
     // Box::new(SwapPaletteMapper::new(sorted_palette_1, sorted_palette_2).unwrap())
-    Box::new(SwapPaletteMapper::new(sorted_palette_2, sorted_palette_1).unwrap())
+    Box::new(SwapPaletteMapper::new(sorted_palette_2, sorted_palette_1))
 }
+
+// pub fn create_neu_quant_palette_mapper(
+//     img: DynamicImage,
+//     quantity: usize,
+// ) -> Box<dyn ColorMap<Color = Rgba<u8>>> {
+//     const DEFAULT_SAMPLEFAC: i32 = 128;
+//     let img = downscale_to_size(&img, IMAGE_SIZE, FilterType::Nearest)
+//         .unwrap_or(img)
+//         .to_rgba8();
+//
+//     let neu_quant_mapper = NeuQuant::new(DEFAULT_SAMPLEFAC, quantity, img.as_bytes());
+//
+//     Box::new(neu_quant_mapper)
+// }
+
+pub fn create_diff_palette_mapper(
+    img_to_process: &DynamicImage,
+    palette_img: &DynamicImage,
+    quantity: usize,
+) -> RgbColorMapper {
+    let palette_img = match downscale_to_size(palette_img, IMAGE_SIZE, FilterType::Nearest) {
+        None => palette_img.to_rgb8(),
+        Some(scaled) => scaled.to_rgb8(),
+    };
+
+    let img_to_process = match downscale_to_size(img_to_process, IMAGE_SIZE, FilterType::Nearest) {
+        None => img_to_process.to_rgb8(),
+        Some(scaled) => scaled.to_rgb8(),
+    };
+
+    let sorted_palette_1 = get_image_lin_rgb_palette(&palette_img, quantity, true);
+    let sorted_palette_2 = get_image_lin_rgb_palette(&img_to_process, quantity, true);
+
+    Box::new(DiffMapper::new(sorted_palette_2, sorted_palette_1))
+}
+
+// DiffMapper

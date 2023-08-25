@@ -6,10 +6,12 @@ use rstar::{Envelope, Point, PointDistance, RTreeObject, AABB};
 pub use lab_color_palette::LabPaletteMapper;
 pub use rgb_color_palette::RgbPaletteMapper;
 pub use swap_color_mapper::SwapPaletteMapper;
+pub use diff_mapper::DiffMapper;
 
 mod lab_color_palette;
 mod rgb_color_palette;
 mod swap_color_mapper;
+mod diff_mapper;
 
 #[allow(unused)]
 pub type RgbColorMapper = Box<dyn ColorMap<Color = Rgb<u8>>>;

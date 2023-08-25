@@ -176,18 +176,18 @@ pub async fn handle_process_mode(
     };
 
     match q.data.as_deref() {
-        Some(mode @ PIXEL_DIFF_MODE) | Some(mode @ NEU_QUANT_MODE) => {
-            bot.send_message(
-                q.from.id,
-                format!("Mode {mode} in development stage. Try a bit later.."),
-            )
-                .await?;
-            bot.send_message(
-                q.from.id,
-                format!("I see you have uploaded file {process_file_id} and have palette"),
-            )
-                .await?;
-        }
+        // Some(mode @ PIXEL_DIFF_MODE) | Some(mode @ NEU_QUANT_MODE) => {
+        //     bot.send_message(
+        //         q.from.id,
+        //         format!("Mode {mode} in development stage. Try a bit later.."),
+        //     )
+        //         .await?;
+        //     bot.send_message(
+        //         q.from.id,
+        //         format!("I see you have uploaded file {process_file_id} and have palette"),
+        //     )
+        //         .await?;
+        // }
         Some(mode_str) => {
             let palette_file_name = get_downloads_dir().join(palette_file_id);
             let process_file_name = get_downloads_dir().join(process_file_id);

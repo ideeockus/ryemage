@@ -12,7 +12,7 @@ pub struct SwapPaletteMapper {
 }
 
 impl SwapPaletteMapper {
-    pub fn new(color_palette_1: Vec<LinSrgb>, color_palette_2: Vec<LinSrgb>) -> Option<Self> {
+    pub fn new(color_palette_1: Vec<LinSrgb>, color_palette_2: Vec<LinSrgb>) -> Self {
         debug!(
             "SwapPaletteMapper with {:?} and {:?} creating",
             color_palette_1.len(),
@@ -55,13 +55,17 @@ impl SwapPaletteMapper {
         let color_set_tree = RTree::bulk_load(indexed_lab_colors);
         debug!("SwapPaletteMapper created");
 
-        Some(Self {
+        Self {
             color_palette_1: color_set_tree,
             color_palette_2,
-        })
+        }
     }
 
-    fn get_nearest_color(&self, color: LinSrgb) -> &IndexedColor<LinSrgb> {
+    pub fn get_color_palette_2(&self) -> &Vec<LinSrgb> {
+        &self.color_palette_2
+    }
+
+    pub fn get_nearest_color(&self, color: LinSrgb) -> &IndexedColor<LinSrgb> {
         let indexed_color = self
             .color_palette_1
             .nearest_neighbor(&[color.red, color.green, color.blue])
