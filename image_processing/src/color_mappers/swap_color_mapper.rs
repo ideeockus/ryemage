@@ -12,7 +12,7 @@ pub struct SwapPaletteMapper {
 }
 
 impl SwapPaletteMapper {
-    pub fn new(color_palette_1: Vec<LinSrgb>, color_palette_2: Vec<LinSrgb>) -> Self {
+    pub fn new(mut color_palette_1: Vec<LinSrgb>, mut color_palette_2: Vec<LinSrgb>) -> Self {
         debug!(
             "SwapPaletteMapper with {:?} and {:?} creating",
             color_palette_1.len(),
@@ -33,6 +33,8 @@ impl SwapPaletteMapper {
                 new_palette_1.push(color_palette_1[i.floor() as usize]);
                 i += mul;
             }
+            debug!("new_palette_1 size: {}", new_palette_1.len());
+            color_palette_1 = new_palette_1;
         }
         if color_palette_2.len() > color_palette_1.len() {
             let mul = color_palette_2.len() as f32 / color_palette_1.len() as f32;
@@ -44,6 +46,8 @@ impl SwapPaletteMapper {
                 new_palette_2.push(color_palette_2[i.floor() as usize]);
                 i += mul;
             }
+            debug!("new_palette_2 size: {}", new_palette_2.len());
+            color_palette_2 = new_palette_2;
         }
 
         let indexed_lab_colors = color_palette_1

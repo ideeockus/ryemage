@@ -1,6 +1,6 @@
 // use image_processing::RgbColorMapper;
 
-const DEFAULT_QUANTITY: usize = 64;
+const DEFAULT_QUANTITY: usize = 128;
 
 #[derive(Clone)]
 pub enum ImageQuality {

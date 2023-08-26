@@ -1,4 +1,5 @@
-use image::{DynamicImage, Rgb, RgbImage};
+use color_quant::NeuQuant;
+use image::{DynamicImage, Rgb, EncodableLayout, RgbImage};
 use image::imageops::{ColorMap, FilterType};
 use kmeans_colors::{Calculate, get_kmeans, Kmeans, Sort};
 use palette::{IntoColor, Lab, LinSrgb, Srgb};
@@ -21,10 +22,10 @@ fn find_kmeans_clusters<C: Calculate + Clone>(
     let mut result = Kmeans::new();
 
     let max_iter = match quantity {
-        ..=16 => 15,
-        17..=64 => 10,
-        65..=128 => 5,
-        _ => 3,
+        ..=16 => 10,
+        17..=64 => 5,
+        65..=128 => 3,
+        _ => 1,
     };
 
     let seed = 351;
@@ -82,7 +83,7 @@ fn get_image_lin_rgb_palette(img: &RgbImage, quantity: usize, need_sort: bool) -
 pub fn create_lab_palette_mapper(
     img: DynamicImage,
     quantity: usize,
-) -> Box<dyn ColorMap<Color = Rgb<u8>>> {
+) -> Box<dyn ColorMap<Color=Rgb<u8>>> {
     let img = downscale_to_size(&img, IMAGE_SIZE, FilterType::Nearest)
         .unwrap_or(img)
         .to_rgb8();
@@ -95,7 +96,7 @@ pub fn create_lab_palette_mapper(
 pub fn create_rgb_palette_mapper(
     img: DynamicImage,
     quantity: usize,
-) -> Box<dyn ColorMap<Color = Rgb<u8>>> {
+) -> Box<dyn ColorMap<Color=Rgb<u8>>> {
     let img = downscale_to_size(&img, IMAGE_SIZE, FilterType::Nearest)
         .unwrap_or(img)
         .to_rgb8();
@@ -127,10 +128,30 @@ pub fn create_swap_palette_mapper(
     Box::new(SwapPaletteMapper::new(sorted_palette_2, sorted_palette_1))
 }
 
-pub fn create_neu_quant_palette_mapper(
+pub fn create_neu_quant_mapper(
+    img: &DynamicImage,
+    quantity: usize,
+) -> Box<dyn ColorMap<Color=image::Rgba<u8>>> {
+    let img_to_process = match downscale_to_size(img, IMAGE_SIZE, FilterType::Nearest) {
+        None => img.to_rgba8(),
+        Some(scaled) => scaled.to_rgba8(),
+    };
+
+    let neu_quant_mapper = NeuQuant::new(
+        1,
+        quantity,
+        img_to_process.as_raw(),
+    );
+
+
+    Box::new(neu_quant_mapper)
+}
+
+#[allow(unused)]
+pub fn create_neu_quant_rgb_wrapper_mapper(
     img_to_process: &DynamicImage,
     quantity: usize,
-) -> Box<dyn ColorMap<Color = image::Rgb<u8>>> {
+) -> Box<dyn ColorMap<Color=image::Rgb<u8>>> {
     let img_to_process = match downscale_to_size(img_to_process, IMAGE_SIZE, FilterType::Nearest) {
         None => img_to_process.to_rgba8(),
         Some(scaled) => scaled.to_rgba8(),
@@ -138,7 +159,7 @@ pub fn create_neu_quant_palette_mapper(
 
     let neu_quant_mapper = NeuQuantWrapper::new(
         img_to_process,
-        quantity
+        quantity,
     );
 
 

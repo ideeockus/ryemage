@@ -16,8 +16,12 @@ pub async fn handle_start_state(bot: Bot, dialogue: MyDialogue, msg: Message) ->
     let mut message = bot.send_message(
         msg.chat.id,
         format!(
-            "Create a palette - press on {BUILD_PALETTE}.
-            Or type /help to view instruction"
+            r#"
+Hello! I can recolor pictures reducing colors amount.
+
+Create a palette - press on {BUILD_PALETTE}.
+
+Type /help to view instruction"#
         ),
     );
     message.reply_markup = Some(base_keyboard());

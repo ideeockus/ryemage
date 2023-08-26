@@ -9,7 +9,7 @@ pub struct NeuQuantWrapper {
 
 impl NeuQuantWrapper {
     pub fn new(img: image::RgbaImage, quantity: usize) -> NeuQuantWrapper {
-        const DEFAULT_SAMPLEFAC: i32 = 128;
+        const DEFAULT_SAMPLEFAC: i32 = 1;
         let neu_quant = NeuQuant::new(
             DEFAULT_SAMPLEFAC,
             quantity,
@@ -37,7 +37,7 @@ impl ColorMap for NeuQuantWrapper {
         self.inner.map_pixel(&mut tmp_pixel);
 
         color.0[0] = tmp_pixel[0];
+        color.0[1] = tmp_pixel[1];
         color.0[2] = tmp_pixel[2];
-        color.0[3] = tmp_pixel[1];
     }
 }
