@@ -14,6 +14,6 @@ FROM debian:buster-slim
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/ryemage_bot .
+COPY --from=builder /app/target/release/tg_controller .
 
-CMD ["./ryemage_bot"]
+CMD ["./tg_controller"]
