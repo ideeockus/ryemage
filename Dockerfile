@@ -6,6 +6,7 @@ WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY ./image_processing/ ./image_processing/
 COPY ./tg_controller/ ./tg_controller/
+COPY ./src/ ./src/
 RUN cargo build --release
 
 # stage 2: release container
