@@ -12,6 +12,10 @@ RUN cargo build --release
 # stage 2: release container
 FROM debian:buster-slim
 
+RUN apt-get update \
+    && apt-get install -y libssl-dev ca-certificates openssl \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY --from=builder /app/target/release/tg_controller .
