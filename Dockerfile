@@ -10,7 +10,7 @@ COPY ./src/ ./src/
 RUN cargo build --release
 
 # stage 2: release container
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 
 RUN apt-get update \
     && apt-get install -y libssl-dev ca-certificates openssl \
